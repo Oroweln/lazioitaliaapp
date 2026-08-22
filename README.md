@@ -1,56 +1,107 @@
-# Welcome to your Expo app 👋
+PHASE 1 — Generic B2B Showcase App (Whitepaper)
+==================================
+No network. No auth. Static mock data. This is a reusable whitepaper B2B app —
+same screens, same structure, same UX every time. Per-client delivery means
+swapping colors, logo, and branding; adding or removing screens as needed.
+Goal for this phase: every screen exists, design is locked, app can be demoed
+and store screenshots can be taken.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+---
 
-## Get started
+Navigation structure
+--------------------
+Auth stack (no session, just UI):
+  Login → any credentials navigate to main app
+  Register → fills in company name, industry (dropdown), city/country, email,
+             password → shows success alert → navigates back to Login
 
-1. Install dependencies
+Bottom tabs (main app):
+  Discover | Connections | Messages | Profile
 
-   ```bash
-   npm install
-   ```
 
-2. Start the app
+Screens and showcase behavior
+------------------------------
 
-   ```bash
-   npx expo start
-   ```
+LOGIN
+  Logo + tagline at top. Email + password fields. "Sign In" button navigates
+  to the main tab app on tap — no credential check. "Create one" link goes to
+  Register.
 
-In the output, you'll find options to open the app in a
+REGISTER
+  Two sections: Company Information (name, industry picker, city/country) and
+  Account Details (email, password). Submit shows a success Alert and navigates
+  back to Login. Industry picker is an inline dropdown list — no external
+  component.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+DISCOVER
+  Header: "Discover" title + company count.
+  Search bar (decorative — filters the hardcoded list client-side).
+  Horizontal scrollable industry filter chips: All | IT | Manufacturing |
+  Logistics | Marketing | Finance | Legal | Agriculture | Design | Healthcare.
+  FlatList of BusinessCards (letter avatar, name, industry tag, location, size).
+  Tapping a card opens BusinessProfile.
+  "Connect" action on each card shows a success Alert (no request sent).
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+BUSINESS PROFILE
+  Hero section: colored letter avatar, company name, website, tag row
+  (industry, location, size). Sections: About (description), Looking For,
+  Details (key-value rows: Industry, Location, Company Size, Website).
+  Sticky footer: "Connect with [Name]" button → Alert confirming request
+  (does nothing).
 
-## Get a fresh project
+CONNECTIONS
+  Segmented control: Pending | Connected.
+  Pending tab: mock list of outgoing and incoming requests with status badges.
+  Connected tab: mock list of approved connections with a "Message" button that
+  navigates into the Chat screen for that conversation.
+  Tapping a connection card opens the BusinessProfile for that company.
 
-When you're ready, run:
+MESSAGES (Conversations list)
+  List of conversation rows: colored letter avatar, company name, last message
+  preview, timestamp. Tapping a row opens the Chat thread.
+  Empty state: "No messages yet — connect with companies to start chatting."
 
-```bash
-npm run reset-project
-```
+CHAT (Thread)
+  FlatList of message bubbles (mine right-aligned, theirs left-aligned).
+  Text input bar with send button. In showcase mode the send button appends the
+  message to the local list — no network call.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+PROFILE
+  Hero: app logo/icon, company name, website, industry badge.
+  Sections: About, Details (email, industry, location, website key-value rows).
+  "Edit Profile" button → Alert "coming soon."
+  "Sign Out" button → confirmation Alert → navigates back to Login.
+  Info link list: About, Contact, Privacy Policy, Terms of Use, Legal,
+  Delete Account (all navigate to a static InfoPage screen).
 
-### Other setup steps
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Mock data shape
+---------------
+Matches the real DB tables so Phase 2 is a straight swap:
 
-## Learn more
+  businesses:   id, name, industry, description, size, location, lookingFor, website, approved
+  b2b_requests: id, requesterId, businessId, status, message
+                status values: pending_admin | pending_business | approved | rejected
+  messages:     id, conversationId, senderId, content, createdAt
+  conversations: id, businessId, businessName, lastMessage, lastMessageAt, unread
 
-To learn more about developing your project with Expo, look at the following resources:
+Hardcoded showcase set:
+  10 businesses across IT, Logistics, Finance, Manufacturing, Design,
+  Agriculture, Legal, Marketing, Healthcare, Tourism.
+  4 connections: 2 pending (1 sent, 1 received), 2 approved.
+  2 conversations, each with 4–5 message exchanges.
+  1 "my company" record used for the Profile screen and to determine
+  which side of a message bubble belongs to the logged-in user
+  (MY_COMPANY_ID = 99).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Per-client customisation checklist (Phase 1 → delivery)
+---------------------------------------------------------
+  [ ] Replace logo asset and app icon
+  [ ] Swap primary color and gradient
+  [ ] Update app name, tagline, and slug in app.json
+  [ ] Replace mock business names/industries/locations with domain-appropriate data
+  [ ] Adjust industry filter chip list to match the vertical
+  [ ] Update bottom tab labels and icons if needed
+  [ ] Remove or add tabs/screens per client brief
+# zoemobiletemplateb2b
