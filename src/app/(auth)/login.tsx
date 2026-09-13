@@ -1,128 +1,94 @@
-import { useState } from 'react';
-import {
-  Alert, Image, KeyboardAvoidingView, Platform, ScrollView,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
+import { useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { ApiError, errorMessage } from '@/api/client';
+import { BrandLockup } from '@/components/brand';
+import { FormScroll } from '@/components/form-scroll';
+import { GoldButton, TextButton } from '@/components/ui/button';
+import { GlassCard } from '@/components/ui/card';
+import { GoldText } from '@/components/ui/gold-text';
+import { Input } from '@/components/ui/input';
+import { Screen } from '@/components/ui/screen';
+import { ErrorBanner } from '@/components/ui/states';
+import { C, Type } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
-import { useTheme } from '@/hooks/use-theme';
-import { Primary, Spacing } from '@/constants/theme';
 
 export default function LoginScreen() {
-  const router = useRouter();
   const { login } = useAuth();
-  const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // State updates too late to stop a second keyboard "go"; a second login would replace the
+  // server's pending 2FA token and leave this screen holding a dead one.
+  const inFlight = useRef(false);
 
-  const handleLogin = () => {
+  const submit = async () => {
+    if (inFlight.current) return;
     if (!email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please enter your email and password.');
+      setError('Enter your email and password.');
       return;
     }
-    login();
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      await login(email, password);
+    } catch (e) {
+      inFlight.current = false;
+      if (e instanceof ApiError && e.status === 403) setError('This account has been suspended.');
+      else if (e instanceof ApiError && (e.status === 400 || e.status === 422)) setError('Incorrect email or password.');
+      else setError(errorMessage(e));
+      setBusy(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.logoSection}>
-          <View style={[styles.logoMark, { borderColor: Primary }]}>
-            <Image
-              source={require('@/assets/images/icon.png')}
-              style={styles.logoImage}
-              resizeMode="cover"
-            />
+    <Screen edges={['top', 'bottom']}>
+      <FormScroll contentStyle={styles.content}>
+        <BrandLockup />
+        <GlassCard style={styles.card}>
+          <View style={{ gap: 6 }}>
+            <GoldText style={Type.eyebrow}>Member access</GoldText>
+            <Text style={Type.title}>Welcome back</Text>
           </View>
-          <Text style={[styles.appName, { color: theme.text }]}>APP NAME</Text>{/* TODO */}
-          <Text style={[styles.tagline, { color: theme.textSecondary }]}>Tagline</Text>{/* TODO */}
-        </View>
-
-        <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-          <Text style={[styles.cardTitle, { color: theme.text }]}>Welcome back</Text>
-          <Text style={[styles.cardSub, { color: theme.textSecondary }]}>
-            Sign in to your company account
-          </Text>
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>EMAIL</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
+          <Input
+            label="Email"
             value={email}
             onChangeText={setEmail}
-            placeholder="company@example.com"
-            placeholderTextColor={theme.textSecondary}
-            keyboardType="email-address"
+            placeholder="you@company.com"
             autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            textContentType="emailAddress"
           />
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>PASSWORD</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
+          <Input
+            label="Password"
             value={password}
             onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={theme.textSecondary}
+            placeholder="••••••••••••"
             secureTextEntry
-            onSubmitEditing={handleLogin}
+            autoComplete="password"
+            textContentType="password"
+            onSubmitEditing={submit}
             returnKeyType="go"
           />
-
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: Primary }]}
-            onPress={handleLogin}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.btnText}>Sign In</Text>
-          </TouchableOpacity>
-        </View>
-
+          <ErrorBanner message={error} />
+          <GoldButton title="Sign in" onPress={submit} loading={busy} />
+        </GlassCard>
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            Don't have an account?{' '}
-          </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={[styles.footerLink, { color: Primary }]}>Create one</Text>
-          </TouchableOpacity>
+          <Text style={styles.footerText}>New to the network?</Text>
+          <TextButton title="Request membership →" onPress={() => router.push('/register')} />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </FormScroll>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: Spacing.five },
-  logoSection: { alignItems: 'center', marginBottom: Spacing.five },
-  logoMark: {
-    width: 80, height: 80, borderRadius: 20, borderWidth: 2,
-    marginBottom: Spacing.three, overflow: 'hidden',
-  },
-  logoImage: { width: '100%', height: '100%' },
-  appName: { fontSize: 20, fontWeight: '800', letterSpacing: 2 },
-  tagline: { fontSize: 12, fontWeight: '500', letterSpacing: 1, marginTop: 4 },
-  card: { borderRadius: 16, padding: Spacing.five, marginBottom: Spacing.four },
-  cardTitle: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
-  cardSub: { fontSize: 14, marginBottom: Spacing.four },
-  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 6 },
-  input: {
-    borderRadius: 10, paddingHorizontal: Spacing.three, paddingVertical: 12,
-    fontSize: 15, marginBottom: Spacing.three, borderWidth: 1,
-  },
-  btn: { borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: Spacing.two },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  footerText: { fontSize: 14 },
-  footerLink: { fontSize: 14, fontWeight: '600' },
+  content: { justifyContent: 'center', gap: 28 },
+  card: { gap: 18, padding: 24 },
+  footer: { alignItems: 'center', gap: 6 },
+  footerText: { color: C.textMuted, fontSize: 13 },
 });

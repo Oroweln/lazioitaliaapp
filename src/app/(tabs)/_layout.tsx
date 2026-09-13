@@ -1,47 +1,43 @@
-import { Redirect, Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Tabs } from 'expo-router';
 
-import { useAuth } from '@/context/auth-context';
-import { useTheme } from '@/hooks/use-theme';
-import { Primary } from '@/constants/theme';
+import { Icon, type IconName } from '@/components/ui/icon';
+import { C } from '@/constants/theme';
 
-const TAB_ICONS: Record<string, string> = {
-  discover: '🔍',
-  connections: '🤝',
-  messages: '💬',
-  profile: '👤',
-};
+const TABS: { name: string; title: string; icon: IconName }[] = [
+  { name: 'discover', title: 'Discover', icon: 'travel_explore' },
+  { name: 'connections', title: 'Connections', icon: 'handshake' },
+  { name: 'messages', title: 'Messages', icon: 'forum' },
+  { name: 'profile', title: 'Profile', icon: 'account_circle' },
+];
 
 export default function TabsLayout() {
-  const { isLoggedIn } = useAuth();
-  const theme = useTheme();
-
-  if (!isLoggedIn) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
   return (
     <Tabs
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Primary,
-        tabBarInactiveTintColor: theme.textSecondary,
+        sceneStyle: { backgroundColor: C.bg },
+        tabBarActiveTintColor: C.accentLight,
+        tabBarInactiveTintColor: C.textMuted,
         tabBarStyle: {
-          backgroundColor: theme.background,
-          borderTopColor: theme.backgroundElement,
+          backgroundColor: C.bg,
+          borderTopColor: C.divider,
+          borderTopWidth: 1,
+          elevation: 0,
+          height: undefined,
+          paddingTop: 6,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        tabBarIcon: ({ focused }) => (
-          <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>
-            {TAB_ICONS[route.name] ?? '●'}
-          </Text>
-        ),
-      })}
-    >
-      <Tabs.Screen name="discover" options={{ title: 'Discover' }} />
-      <Tabs.Screen name="connections" options={{ title: 'Connections' }} />
-      <Tabs.Screen name="messages" options={{ title: 'Messages' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
+      }}>
+      {TABS.map((t) => (
+        <Tabs.Screen
+          key={t.name}
+          name={t.name}
+          options={{
+            title: t.title,
+            tabBarIcon: ({ color }) => <Icon name={t.icon} size={24} color={color} />,
+          }}
+        />
+      ))}
     </Tabs>
   );
 }

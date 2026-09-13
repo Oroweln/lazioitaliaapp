@@ -1,24 +1,25 @@
 {
   "expo": {
-    "name": "lombardia-app",
-    "slug": "lombardia-app",
+    "name": "zoe-app",
+    "slug": "zoe-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lombardiaapp",
-    "userInterfaceStyle": "automatic",
+    "scheme": "zoeapp",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0d0d1a",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0d0d1a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.milan.ninkovic.lombardiaapp"
+      "package": "com.milan.ninkovic.zoeapp"
     },
     "web": {
       "output": "static",
@@ -29,9 +30,16 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0d0d1a",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 120
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-font",
+        {
+          "fonts": ["./node_modules/@expo-google-fonts/material-symbols/300Light/MaterialSymbols_300Light.ttf"]
         }
       ]
     ],

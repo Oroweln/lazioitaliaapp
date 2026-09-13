@@ -1,196 +1,161 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  Alert, KeyboardAvoidingView, Platform, ScrollView,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { useTheme } from '@/hooks/use-theme';
-import { Primary, Spacing } from '@/constants/theme';
+import { ApiError, errorMessage } from '@/api/client';
+import { FormScroll } from '@/components/form-scroll';
+import { OptionPicker } from '@/components/option-picker';
+import { GoldButton } from '@/components/ui/button';
+import { GlassCard } from '@/components/ui/card';
+import { GoldText } from '@/components/ui/gold-text';
+import { ScreenHeader } from '@/components/ui/header';
+import { Input } from '@/components/ui/input';
+import { Screen } from '@/components/ui/screen';
+import { Segmented } from '@/components/ui/segmented';
+import { ErrorBanner } from '@/components/ui/states';
+import { INDUSTRIES } from '@/constants/industries';
+import { C, Type } from '@/constants/theme';
+import { REGISTERED_LOGIN_FAILED, useAuth } from '@/context/auth-context';
 
-const INDUSTRIES = [
-  'IT', 'Manufacturing', 'Logistics', 'Marketing', 'Finance',
-  'Legal', 'Agriculture', 'Design', 'Healthcare', 'Tourism', 'Other',
-];
+type Mode = 'company' | 'invite';
+const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({ value: i, label: i }));
 
 export default function RegisterScreen() {
-  const router = useRouter();
-  const theme = useTheme();
-  const [companyName, setCompanyName] = useState('');
-  const [industry, setIndustry] = useState('');
-  const [location, setLocation] = useState('');
+  const { register } = useAuth();
+  const [mode, setMode] = useState<Mode>('company');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [industry, setIndustry] = useState<string | null>(null);
+  const [location, setLocation] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = () => {
-    if (!companyName.trim() || !email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please fill in company name, email and password.');
+  const validate = () => {
+    if (!fullName.trim()) return 'Enter your full name.';
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'Enter a valid email address.';
+    if (password.length < 12) return 'Password must be at least 12 characters.';
+    if (mode === 'company' && !companyName.trim()) return 'Enter your company name.';
+    if (mode === 'invite' && !inviteCode.trim()) return 'Enter your invite code.';
+    return null;
+  };
+
+  const submit = async () => {
+    const problem = validate();
+    if (problem) {
+      setError(problem);
       return;
     }
-    Alert.alert(
-      'Account Created',
-      'Your account is pending approval. You will be notified once approved.',
-      [{ text: 'OK', onPress: () => router.back() }],
-    );
+    setBusy(true);
+    setError(null);
+    try {
+      await register({
+        email: email.trim(),
+        password,
+        full_name: fullName.trim(),
+        ...(mode === 'company'
+          ? { name: companyName.trim(), industry: industry ?? undefined, location: location.trim() || undefined }
+          : { name: fullName.trim(), invite_token: inviteCode.trim() }),
+      });
+    } catch (e) {
+      if (e instanceof ApiError && e.code === REGISTERED_LOGIN_FAILED) {
+        setBusy(false);
+        Alert.alert('Account created', e.message, [{ text: 'Sign in', onPress: () => router.back() }]);
+        return;
+      }
+      const msg = errorMessage(e);
+      setError(
+        msg === 'Registration failed'
+          ? mode === 'invite'
+            ? 'Registration failed. The invite code may be invalid or expired, or the email is already in use.'
+            : 'Registration failed. This email may already be registered.'
+          : msg,
+      );
+      setBusy(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-            <Text style={[styles.backText, { color: Primary }]}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: theme.text }]}>Create Account</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Register your company</Text>
+    <Screen edges={['top', 'bottom']}>
+      <ScreenHeader title="Request membership" back />
+      <FormScroll>
+        <View style={{ gap: 6 }}>
+          <GoldText style={Type.eyebrow}>Join the network</GoldText>
+          <Text style={Type.title}>Create your account</Text>
+          <Text style={Type.bodyDim}>
+            Every member is reviewed by Zoe Milano before gaining access to the network.
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-          <Text style={[styles.section, { color: Primary }]}>COMPANY INFORMATION</Text>
+        <Segmented<Mode>
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: 'company', label: 'New company' },
+            { value: 'invite', label: 'Invite code' },
+          ]}
+        />
 
-          <Text style={[styles.label, { color: theme.textSecondary }]}>COMPANY NAME</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
-            value={companyName}
-            onChangeText={setCompanyName}
-            placeholder="Your Company Ltd."
-            placeholderTextColor={theme.textSecondary}
-          />
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>INDUSTRY</Text>
-          <TouchableOpacity
-            style={[styles.input, styles.picker, {
-              backgroundColor: theme.background,
-              borderColor: theme.backgroundSelected,
-            }]}
-            onPress={() => setShowPicker(!showPicker)}
-          >
-            <Text style={{ color: industry ? theme.text : theme.textSecondary, fontSize: 15 }}>
-              {industry || 'Select industry'}
-            </Text>
-          </TouchableOpacity>
-          {showPicker && (
-            <View style={[styles.pickerList, {
-              backgroundColor: theme.background,
-              borderColor: theme.backgroundSelected,
-            }]}>
-              {INDUSTRIES.map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  style={[styles.pickerItem, { borderBottomColor: theme.backgroundSelected }]}
-                  onPress={() => { setIndustry(item); setShowPicker(false); }}
-                >
-                  <Text style={{ color: industry === item ? Primary : theme.text, fontSize: 15 }}>
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>CITY, COUNTRY</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Milan, Italy"
-            placeholderTextColor={theme.textSecondary}
-          />
-
-          <Text style={[styles.section, { color: Primary, marginTop: Spacing.two }]}>
-            ACCOUNT DETAILS
-          </Text>
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>WORK EMAIL</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
+        <GlassCard style={styles.card}>
+          <GoldText style={Type.eyebrow}>About you</GoldText>
+          <Input label="Full name" value={fullName} onChangeText={setFullName} placeholder="Name Surname" autoComplete="name" />
+          <Input
+            label="Email"
             value={email}
             onChangeText={setEmail}
             placeholder="you@company.com"
-            placeholderTextColor={theme.textSecondary}
-            keyboardType="email-address"
             autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
           />
-
-          <Text style={[styles.label, { color: theme.textSecondary }]}>PASSWORD</Text>
-          <TextInput
-            style={[styles.input, {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.backgroundSelected,
-            }]}
+          <Input
+            label="Password"
             value={password}
             onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={theme.textSecondary}
+            placeholder="At least 12 characters"
             secureTextEntry
+            autoComplete="new-password"
           />
+        </GlassCard>
 
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: Primary }]}
-            onPress={handleRegister}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.btnText}>Create Account</Text>
-          </TouchableOpacity>
-        </View>
+        {mode === 'company' ? (
+          <GlassCard style={styles.card}>
+            <GoldText style={Type.eyebrow}>Your company</GoldText>
+            <Input label="Company name" value={companyName} onChangeText={setCompanyName} placeholder="Company S.r.l." />
+            <OptionPicker
+              label="Industry"
+              value={industry}
+              options={INDUSTRY_OPTIONS}
+              placeholder="Select industry"
+              onChange={setIndustry}
+            />
+            <Input label="Location" value={location} onChangeText={setLocation} placeholder="Milan, Italy" />
+          </GlassCard>
+        ) : (
+          <GlassCard style={styles.card}>
+            <GoldText style={Type.eyebrow}>Join your company</GoldText>
+            <Text style={styles.hint}>Ask your company owner or admin for an invite code from their Profile.</Text>
+            <Input
+              label="Invite code"
+              value={inviteCode}
+              onChangeText={setInviteCode}
+              placeholder="Paste invite code"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </GlassCard>
+        )}
 
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            Already have an account?{' '}
-          </Text>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={[styles.footerLink, { color: Primary }]}>Sign in</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <ErrorBanner message={error} />
+        <GoldButton title="Submit request" onPress={submit} loading={busy} />
+      </FormScroll>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  scroll: { flexGrow: 1, padding: Spacing.five, paddingTop: Spacing.six },
-  header: { marginBottom: Spacing.four },
-  back: { marginBottom: Spacing.three },
-  backText: { fontSize: 15, fontWeight: '600' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  subtitle: { fontSize: 14 },
-  card: { borderRadius: 16, padding: Spacing.five, marginBottom: Spacing.four },
-  section: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: Spacing.three },
-  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 6 },
-  input: {
-    borderRadius: 10, paddingHorizontal: Spacing.three, paddingVertical: 12,
-    fontSize: 15, marginBottom: Spacing.three, borderWidth: 1,
-  },
-  picker: { justifyContent: 'center' },
-  pickerList: {
-    borderRadius: 10, borderWidth: 1,
-    marginBottom: Spacing.three, marginTop: -Spacing.two, overflow: 'hidden',
-  },
-  pickerItem: { paddingVertical: 10, paddingHorizontal: Spacing.three, borderBottomWidth: 1 },
-  btn: { borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: Spacing.two },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  footer: {
-    flexDirection: 'row', justifyContent: 'center',
-    alignItems: 'center', paddingBottom: Spacing.six,
-  },
-  footerText: { fontSize: 14 },
-  footerLink: { fontSize: 14, fontWeight: '600' },
+  card: { gap: 16, padding: 22 },
+  hint: { color: C.textDim, fontSize: 13, lineHeight: 19 },
 });

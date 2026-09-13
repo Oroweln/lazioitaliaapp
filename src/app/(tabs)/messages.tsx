@@ -1,0 +1,227 @@
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { errorMessage } from '@/api/client';
+import { Chat } from '@/api/endpoints';
+import type { ConversationSummary } from '@/api/types';
+import { Avatar } from '@/components/ui/avatar';
+import { Divider } from '@/components/ui/card';
+import { ScreenHeader } from '@/components/ui/header';
+import { Screen } from '@/components/ui/screen';
+import { EmptyState, ErrorState, GoldRefreshControl, Loading } from '@/components/ui/states';
+import { C, MaxContentWidth } from '@/constants/theme';
+import { useRealtime } from '@/context/realtime-context';
+import { relativeTime } from '@/utils/format';
+
+const PAGE = 50;
+// Coalesces bursts of pushes into one refetch.
+const REFETCH_DEBOUNCE_MS = 1000;
+// Each later page re-requests this many rows from the end of the previous one: a conversation
+// jumping to the top shifts every offset by one, which would otherwise skip a row.
+const PAGE_OVERLAP = 5;
+
+function newestFirst(a: ConversationSummary, b: ConversationSummary) {
+  const at = a.last_message_at ? Date.parse(a.last_message_at) : -Infinity;
+  const bt = b.last_message_at ? Date.parse(b.last_message_at) : -Infinity;
+  return bt - at || b.id - a.id;
+}
+
+// Fresh rows win. Rows only in `current` survive if they sort after everything `fresh` covers
+// (i.e. they came from a later page); inside that range, a missing row was removed server-side.
+function mergeConversations(current: ConversationSummary[], fresh: ConversationSummary[], freshIsFirstPage: boolean) {
+  const freshIds = new Set(fresh.map((c) => c.id));
+  const sortedFresh = [...fresh].sort(newestFirst);
+  const oldestFresh = sortedFresh[sortedFresh.length - 1];
+  const kept = current.filter((c) => {
+    if (freshIds.has(c.id)) return false;
+    if (!freshIsFirstPage) return true;
+    if (!oldestFresh || fresh.length < PAGE) return false;
+    return newestFirst(c, oldestFresh) > 0;
+  });
+  return [...sortedFresh, ...kept].sort(newestFirst);
+}
+
+export default function MessagesScreen() {
+  const [items, setItems] = useState<ConversationSummary[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMore = useRef(false);
+  const requestId = useRef(0);
+  const focused = useRef(false);
+  const focusCount = useRef(0);
+  const stale = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Refetches the first page and merges it in, so pages already loaded by scrolling stay put;
+  // a new message moves its conversation into the first page anyway.
+  const fetchFirstPage = useCallback(() => {
+    const id = ++requestId.current;
+    return Chat.conversations({ limit: PAGE, offset: 0 }).then(
+      (page) => {
+        if (id !== requestId.current) return;
+        setItems((cur) => {
+          if (!cur || page.length < PAGE) hasMore.current = page.length === PAGE;
+          return cur ? mergeConversations(cur, page, true) : page;
+        });
+        setError(null);
+      },
+      (e) => {
+        if (id === requestId.current) setError(errorMessage(e));
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    void fetchFirstPage();
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [fetchFirstPage]);
+
+  const scheduleRefetch = () => {
+    // The tab stays mounted behind other screens; only refetch while it's visible.
+    if (!focused.current) {
+      stale.current = true;
+      return;
+    }
+    if (timer.current) return;
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      void fetchFirstPage();
+    }, REFETCH_DEBOUNCE_MS);
+  };
+
+  useRealtime(() => scheduleRefetch());
+
+  useFocusEffect(
+    useCallback(() => {
+      focused.current = true;
+      // The first focus is covered by the mount fetch. Later focuses always refresh,
+      // since returning from a chat changes unread counts.
+      if (focusCount.current++ > 0 || stale.current) {
+        stale.current = false;
+        void fetchFirstPage();
+      }
+      return () => {
+        focused.current = false;
+      };
+    }, [fetchFirstPage]),
+  );
+
+  const refresh = async () => {
+    setRefreshing(true);
+    await fetchFirstPage();
+    setRefreshing(false);
+  };
+
+  const loadingMoreRef = useRef(false);
+  const loadMore = async () => {
+    if (!items || !hasMore.current || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    try {
+      const page = await Chat.conversations({ limit: PAGE, offset: Math.max(0, items.length - PAGE_OVERLAP) });
+      hasMore.current = page.length === PAGE;
+      setItems((cur) => (cur ? mergeConversations(cur, page, false) : page));
+    } catch {
+      // scrolling again retries
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  };
+
+  const renderItem = ({ item }: { item: ConversationSummary }) => {
+    const name = item.other_name ?? 'Member';
+    const unread = item.unread_count > 0;
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${name}${item.other_business_name ? `, ${item.other_business_name}` : ''}${
+          unread ? `, ${item.unread_count} unread` : ''
+        }`}
+        android_ripple={{ color: C.accentDim }}
+        style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.glass }]}
+        onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id, name } })}>
+        <Avatar name={item.other_business_name ?? name} size={52} />
+        <View style={styles.body}>
+          <View style={styles.topLine}>
+            <Text style={[styles.name, unread && styles.nameUnread]} numberOfLines={1}>
+              {name}
+            </Text>
+            <Text style={[styles.time, unread && { color: C.accentLight }]}>{relativeTime(item.last_message_at)}</Text>
+          </View>
+          {item.other_business_name ? (
+            <Text style={styles.company} numberOfLines={1}>
+              {item.other_business_name}
+            </Text>
+          ) : null}
+          <View style={styles.topLine}>
+            <Text style={[styles.preview, unread && { color: C.text }]} numberOfLines={1}>
+              {item.last_message ?? 'No messages yet — say hello'}
+            </Text>
+            {unread && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.unread_count > 99 ? '99+' : item.unread_count}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Pressable>
+    );
+  };
+
+  return (
+    <Screen>
+      <ScreenHeader eyebrow="Conversations" title="Messages" />
+      {items === null && !error ? (
+        <Loading />
+      ) : items === null ? (
+        <ErrorState message={error!} onRetry={refresh} />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(c) => String(c.id)}
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <Divider style={{ marginLeft: 88 }} />}
+          contentContainerStyle={styles.list}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          refreshControl={<GoldRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.accentLight} style={{ margin: 16 }} /> : null}
+          ListEmptyComponent={
+            <EmptyState
+              icon="forum"
+              title="No messages yet"
+              message="Connect with companies, then start a conversation from Connections."
+            />
+          }
+        />
+      )}
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  list: { paddingBottom: 32, flexGrow: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, paddingVertical: 14 },
+  body: { flex: 1, gap: 2 },
+  topLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  name: { flex: 1, fontSize: 16, color: C.text, fontWeight: '400' },
+  nameUnread: { fontWeight: '600' },
+  company: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.accentLight },
+  time: { fontSize: 12, color: C.textMuted },
+  preview: { flex: 1, fontSize: 14, color: C.textMuted, fontWeight: '300' },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    backgroundColor: C.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { fontSize: 11, fontWeight: '700', color: C.onGold },
+});

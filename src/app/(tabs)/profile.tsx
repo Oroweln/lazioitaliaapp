@@ -1,169 +1,170 @@
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '@/context/auth-context';
-import { useTheme } from '@/hooks/use-theme';
-import { Primary, Spacing } from '@/constants/theme';
-import { myBusiness } from '@/data/mock';
-import { INDUSTRY_COLORS } from '@/utils/colors';
+import { Company } from '@/api/endpoints';
+import { ListRow } from '@/components/list-row';
+import { Avatar } from '@/components/ui/avatar';
+import { OutlineButton } from '@/components/ui/button';
+import { Divider, GlassCard } from '@/components/ui/card';
+import { GoldText } from '@/components/ui/gold-text';
+import { ScreenHeader } from '@/components/ui/header';
+import { Screen } from '@/components/ui/screen';
+import { ErrorBanner, GoldRefreshControl } from '@/components/ui/states';
+import { Tag } from '@/components/ui/tag';
+import { C, MaxContentWidth, Type } from '@/constants/theme';
+import { useAuth, useMe } from '@/context/auth-context';
+import { useAsync } from '@/hooks/use-async';
+import { useRefetchOnFocus } from '@/hooks/use-refetch-on-focus';
+import { displayWebsite, SIZE_LABELS } from '@/utils/format';
+import { isWebUrl, openWebsite } from '@/utils/links';
 
-const INFO_LINKS = [
-  'About',
-  'Contact',
-  'Privacy Policy',
-  'Terms of Use',
-  'Legal Information',
-  'Delete Account',
-];
+const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', member: 'Member' } as const;
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const theme = useTheme();
-  const { logout } = useAuth();
-  const industryColor = INDUSTRY_COLORS[myBusiness.industry] ?? '#6B7280';
+  const { logout, refreshMe } = useAuth();
+  const me = useMe();
+  const business = me.business;
+  const canManage = me.business_role === 'owner' || me.business_role === 'admin';
 
-  const handleLogout = () =>
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+  const team = useAsync(() => Company.get());
+  const refreshAll = async () => {
+    await Promise.all([refreshMe().catch(() => undefined), team.silentReload()]);
+  };
+  useRefetchOnFocus(() => void refreshAll());
+
+  const confirmLogout = () =>
+    Alert.alert('Sign out', 'Do you want to sign out of Zoe Milano?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: 'Sign out',
         style: 'destructive',
-        onPress: () => {
-          logout();
-          router.replace('/(auth)/login');
-        },
+        onPress: () => void logout(),
       },
     ]);
 
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.six }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={[styles.hero, { paddingTop: insets.top + Spacing.four }]}>
-        <View style={[styles.logoWrap, { borderColor: Primary }]}>
-          <Image
-            source={require('@/assets/images/icon.png')}
-            style={styles.logoImage}
-            resizeMode="cover"
-          />
-        </View>
-        <Text style={[styles.name, { color: theme.text }]}>{myBusiness.name}</Text>
-        {myBusiness.website && (
-          <Text style={[styles.website, { color: Primary }]}>{myBusiness.website}</Text>
-        )}
-        <View style={[styles.badge, { backgroundColor: industryColor + '20' }]}>
-          <Text style={[styles.badgeText, { color: industryColor }]}>{myBusiness.industry}</Text>
-        </View>
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ABOUT</Text>
-        <Text style={[styles.sectionBody, { color: theme.text }]}>{myBusiness.description}</Text>
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DETAILS</Text>
-        {[
-          { label: 'Industry', value: myBusiness.industry },
-          { label: 'Location', value: myBusiness.location },
-          ...(myBusiness.website ? [{ label: 'Website', value: myBusiness.website }] : []),
-        ].map((row) => (
-          <View
-            key={row.label}
-            style={[styles.detailRow, { borderBottomColor: theme.backgroundElement }]}
-          >
-            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{row.label}</Text>
-            <Text style={[styles.detailValue, {
-              color: row.label === 'Website' ? Primary : theme.text,
-            }]}>
-              {row.value}
-            </Text>
+    <Screen>
+      <ScreenHeader eyebrow="Your account" title="Profile" />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<GoldRefreshControl refreshing={team.refreshing} onRefresh={team.reload} />}>
+        <GlassCard style={styles.hero}>
+          <Avatar name={business?.name ?? me.profile.name ?? me.email} size={84} />
+          <View style={{ alignItems: 'center', gap: 6 }}>
+            <Text style={[Type.title, { textAlign: 'center' }]}>{business?.name ?? 'No company'}</Text>
+            {isWebUrl(business?.website) ? (
+              <Pressable
+                onPress={() => openWebsite(business?.website)}
+                hitSlop={8}
+                accessibilityRole="link"
+                accessibilityLabel={`Open website ${displayWebsite(business?.website)}`}>
+                <Text style={styles.website}>{displayWebsite(business.website)} ↗</Text>
+              </Pressable>
+            ) : null}
           </View>
-        ))}
-      </View>
+          <View style={styles.tags}>
+            {business?.industry && <Tag label={business.industry} />}
+            {me.business_role && <Tag label={ROLE_LABEL[me.business_role]} tone="muted" />}
+          </View>
+          <Divider />
+          <View style={{ alignItems: 'center', gap: 2 }}>
+            <Text style={styles.person}>{me.profile.name ?? 'Add your name'}</Text>
+            <Text style={styles.email}>{me.email}</Text>
+          </View>
+        </GlassCard>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.editBtn, { backgroundColor: Primary }]}
-          onPress={() => Alert.alert('Edit Profile', 'Profile editing coming soon.')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.editBtnText}>Edit Profile</Text>
-        </TouchableOpacity>
+        {business && (
+          <GlassCard style={styles.section}>
+            <GoldText style={Type.eyebrow}>Company</GoldText>
+            {business.description ? (
+              <Text style={styles.body}>{business.description}</Text>
+            ) : (
+              <Text style={styles.muted}>No description yet.</Text>
+            )}
+            {business.looking_for ? (
+              <View style={{ gap: 4 }}>
+                <Text style={[Type.label, { color: C.textMuted }]}>Looking for</Text>
+                <Text style={styles.body}>{business.looking_for}</Text>
+              </View>
+            ) : null}
+            <Detail label="Location" value={business.location} />
+            <Detail label="Company size" value={business.size ? SIZE_LABELS[business.size] : null} />
+            {canManage && (
+              <OutlineButton title="Edit company" icon="edit" compact onPress={() => router.push('/account/edit-business')} />
+            )}
+          </GlassCard>
+        )}
 
-        <TouchableOpacity
-          style={[styles.logoutBtn, { borderColor: theme.backgroundSelected }]}
-          onPress={handleLogout}
-          activeOpacity={0.85}
-        >
-          <Text style={[styles.logoutBtnText, { color: '#EF4444' }]}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+        {!team.data && team.error && (
+          <GlassCard style={styles.section}>
+            <GoldText style={Type.eyebrow}>Team</GoldText>
+            <ErrorBanner message={team.error} />
+            <OutlineButton title="Try again" icon="refresh" compact onPress={team.retry} />
+          </GlassCard>
+        )}
 
-      <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
+        {team.data && (
+          <GlassCard style={styles.section}>
+            <GoldText style={Type.eyebrow}>Team · {team.data.members.length}</GoldText>
+            {team.data.members.map((m) => (
+              <View key={m.user_id} style={styles.member}>
+                <Avatar name={m.name ?? m.email} size={36} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.memberName} numberOfLines={1}>
+                    {m.name ?? m.email}
+                    {m.user_id === me.user_id ? '  (you)' : ''}
+                  </Text>
+                  <Text style={styles.email} numberOfLines={1}>
+                    {m.email}
+                  </Text>
+                </View>
+                <Tag label={ROLE_LABEL[m.role]} tone={m.role === 'member' ? 'muted' : 'gold'} />
+              </View>
+            ))}
+            {canManage && (
+              <OutlineButton title="Invite colleagues" icon="person_add" compact onPress={() => router.push('/account/invites')} />
+            )}
+          </GlassCard>
+        )}
 
-      <View style={styles.infoSection}>
-        {INFO_LINKS.map((label) => (
-          <TouchableOpacity
-            key={label}
-            style={[styles.infoRow, { borderBottomColor: theme.backgroundElement }]}
-            onPress={() => Alert.alert(label, 'This page is coming soon.')}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.infoLabel, { color: theme.text }]}>{label}</Text>
-            <Text style={[styles.infoChevron, { color: theme.textSecondary }]}>›</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <GlassCard style={styles.section}>
+          <GoldText style={Type.eyebrow}>Settings</GoldText>
+          <ListRow icon="person" title="Your name" subtitle="How colleagues see you in chat" onPress={() => router.push('/account/edit-profile')} />
+          <ListRow
+            icon="shield"
+            title="Security"
+            subtitle="Two-factor authentication, delete account"
+            onPress={() => router.push('/account/security')}
+          />
+          <ListRow icon="logout" title="Sign out" onPress={confirmLogout} tone="danger" />
+        </GlassCard>
+      </ScrollView>
+    </Screen>
+  );
+}
 
-      <Text style={[styles.versionText, { color: theme.textSecondary }]}>
-        {myBusiness.name} · v1.0.0{/* TODO: update version */}
-      </Text>
-    </ScrollView>
+function Detail({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return (
+    <View style={styles.detail}>
+      <Text style={[Type.label, { color: C.textMuted }]}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  hero: { alignItems: 'center', paddingBottom: Spacing.four, paddingHorizontal: Spacing.four },
-  logoWrap: {
-    width: 80, height: 80, borderRadius: 20, borderWidth: 2,
-    marginBottom: Spacing.three, overflow: 'hidden',
-  },
-  logoImage: { width: '100%', height: '100%' },
-  name: { fontSize: 24, fontWeight: '700', marginBottom: 4 },
-  website: { fontSize: 14, marginBottom: Spacing.two },
-  badge: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.one, borderRadius: 999 },
-  badgeText: { fontSize: 13, fontWeight: '700' },
-  divider: { height: 1 },
-  section: { paddingHorizontal: Spacing.four, paddingVertical: Spacing.three },
-  sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: Spacing.three },
-  sectionBody: { fontSize: 15, lineHeight: 24 },
-  detailRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    paddingVertical: Spacing.two + 2, borderBottomWidth: 1,
-  },
-  detailLabel: { fontSize: 14 },
-  detailValue: { fontSize: 14, fontWeight: '500' },
-  actions: { padding: Spacing.four, gap: Spacing.two },
-  editBtn: { borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  editBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  logoutBtn: { borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1 },
-  logoutBtnText: { fontSize: 16, fontWeight: '600' },
-  infoSection: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two },
-  infoRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: Spacing.three, borderBottomWidth: 1,
-  },
-  infoLabel: { fontSize: 15 },
-  infoChevron: { fontSize: 22, lineHeight: 24 },
-  versionText: { fontSize: 12, textAlign: 'center', marginTop: Spacing.four },
+  content: { padding: 20, paddingTop: 4, gap: 16, paddingBottom: 40, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  hero: { alignItems: 'center', gap: 14, padding: 24 },
+  website: { color: C.accentLight, fontSize: 14 },
+  tags: { flexDirection: 'row', gap: 8 },
+  person: { fontSize: 16, color: C.text },
+  email: { fontSize: 12, color: C.textMuted },
+  section: { gap: 14 },
+  body: { color: C.textDim, fontSize: 14, lineHeight: 22, fontWeight: '300' },
+  muted: { color: C.textMuted, fontSize: 14 },
+  detail: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  detailValue: { color: C.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
+  member: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  memberName: { fontSize: 14, color: C.text },
 });

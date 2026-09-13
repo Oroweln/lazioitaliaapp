@@ -1,64 +1,46 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
-import { avatarColor, INDUSTRY_COLORS } from '@/utils/colors';
-import { useTheme } from '@/hooks/use-theme';
-import type { Business } from '@/data/mock';
+import type { Business } from '@/api/types';
+import { Avatar } from '@/components/ui/avatar';
+import { GlassCard } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
+import { Tag } from '@/components/ui/tag';
+import { C } from '@/constants/theme';
+import { SIZE_LABELS } from '@/utils/format';
 
-interface Props {
-  business: Business;
-  onPress: () => void;
-}
-
-export function BusinessCard({ business, onPress }: Props) {
-  const theme = useTheme();
-  const bg = avatarColor(business.name);
-  const industryColor = INDUSTRY_COLORS[business.industry] ?? '#6B7280';
-
+export function BusinessCard({ business, onPress }: { business: Business; onPress: () => void }) {
+  const meta = [business.location, business.size ? SIZE_LABELS[business.size] : null].filter(Boolean).join('  ·  ');
   return (
-    <TouchableOpacity
-      style={[styles.card, { backgroundColor: theme.backgroundElement }]}
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <View style={[styles.avatar, { backgroundColor: bg }]}>
-        <Text style={styles.avatarText}>{business.name.charAt(0)}</Text>
-      </View>
-      <View style={styles.info}>
-        <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>
-          {business.name}
-        </Text>
-        <View style={styles.tags}>
-          <View style={[styles.industryTag, { backgroundColor: industryColor + '20' }]}>
-            <Text style={[styles.industryText, { color: industryColor }]}>{business.industry}</Text>
-          </View>
-          <Text style={[styles.location, { color: theme.textSecondary }]} numberOfLines={1}>
-            📍 {business.location}
+    <GlassCard onPress={onPress} style={styles.card} radius={20}>
+      <View style={styles.top}>
+        <Avatar name={business.name} size={50} />
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>
+            {business.name}
           </Text>
+          {meta ? (
+            <Text style={styles.meta} numberOfLines={1}>
+              {meta}
+            </Text>
+          ) : null}
         </View>
+        <Icon name="chevron_right" size={22} color={C.textMuted} />
       </View>
-      <Text style={[styles.chevron, { color: theme.textSecondary }]}>›</Text>
-    </TouchableOpacity>
+      {business.description ? (
+        <Text style={styles.description} numberOfLines={2}>
+          {business.description}
+        </Text>
+      ) : null}
+      {business.industry ? <Tag label={business.industry} /> : null}
+    </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: Spacing.four, paddingVertical: Spacing.three,
-    marginHorizontal: Spacing.three, marginBottom: Spacing.two,
-    borderRadius: 14,
-  },
-  avatar: {
-    width: 48, height: 48, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center', marginRight: Spacing.three,
-  },
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  tags: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  industryTag: { paddingHorizontal: Spacing.two, paddingVertical: 2, borderRadius: 6 },
-  industryText: { fontSize: 12, fontWeight: '600' },
-  location: { fontSize: 12, flex: 1 },
-  chevron: { fontSize: 22, lineHeight: 24 },
+  card: { gap: 12, padding: 16 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  info: { flex: 1, gap: 3 },
+  name: { fontSize: 17, fontWeight: '400', color: C.text },
+  meta: { fontSize: 12, color: C.textMuted },
+  description: { fontSize: 13, lineHeight: 20, color: C.textDim, fontWeight: '300' },
 });
