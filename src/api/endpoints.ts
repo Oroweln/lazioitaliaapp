@@ -1,4 +1,4 @@
-import { api } from '@/api/client';
+import { api, upload, type UploadFile } from '@/api/client';
 import type {
   B2bRequest,
   Business,
@@ -27,6 +27,11 @@ export const Auth = {
     api<{ message: string }>('/auth/register', { method: 'POST', body, auth: false }),
   logout: (refresh_token: string) =>
     api<void>('/auth/logout', { method: 'POST', body: { refresh_token }, auth: false }),
+  // Both always answer 204, whether or not the address exists.
+  resendVerification: (email: string) =>
+    api<void>('/auth/resend-verification', { method: 'POST', body: { email }, auth: false }),
+  forgotPassword: (email: string) =>
+    api<void>('/auth/forgot-password', { method: 'POST', body: { email }, auth: false }),
 };
 
 export const Account = {
@@ -47,6 +52,8 @@ export const Company = {
   createInvite: (role: 'member' | 'admin') =>
     api<CreatedInvite>('/business/invites', { method: 'POST', body: { role } }),
   revokeInvite: (id: number) => api<void>(`/business/invites/${id}`, { method: 'DELETE' }),
+  uploadLogo: (file: UploadFile) => upload<Business>('/business/logo', file),
+  deleteLogo: () => api<Business>('/business/logo', { method: 'DELETE' }),
 };
 
 export const Discover = {

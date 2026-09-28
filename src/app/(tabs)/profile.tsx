@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 
 import { Company } from '@/api/endpoints';
 import { ListRow } from '@/components/list-row';
+import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import { Avatar } from '@/components/ui/avatar';
 import { OutlineButton } from '@/components/ui/button';
 import { Divider, GlassCard } from '@/components/ui/card';
@@ -48,8 +49,10 @@ export default function ProfileScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<GoldRefreshControl refreshing={team.refreshing} onRefresh={team.reload} />}>
+        <VerifyEmailBanner />
+
         <GlassCard style={styles.hero}>
-          <Avatar name={business?.name ?? me.profile.name ?? me.email} size={84} />
+          <Avatar name={business?.name ?? me.profile.name ?? me.email} size={84} logoUrl={business?.logo_url} />
           <View style={{ alignItems: 'center', gap: 6 }}>
             <Text style={[Type.title, { textAlign: 'center' }]}>{business?.name ?? 'No company'}</Text>
             {isWebUrl(business?.website) ? (
@@ -58,7 +61,7 @@ export default function ProfileScreen() {
                 hitSlop={8}
                 accessibilityRole="link"
                 accessibilityLabel={`Open website ${displayWebsite(business?.website)}`}>
-                <Text style={styles.website}>{displayWebsite(business.website)} ↗</Text>
+                <Text style={styles.website}>{displayWebsite(business?.website)} ↗</Text>
               </Pressable>
             ) : null}
           </View>

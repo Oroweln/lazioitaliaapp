@@ -34,6 +34,7 @@ type Row = {
   createdAt: string;
   direction: 'sent' | 'received';
   businessId: number;
+  logoUrl: string | null;
   contactUserId: number | null;
   requestId: number;
 };
@@ -50,6 +51,7 @@ function fromSent(s: SentConnection): Row {
     createdAt: s.created_at,
     direction: 'sent',
     businessId: s.business_id,
+    logoUrl: s.business_logo_url,
     contactUserId: s.business_owner_id,
     requestId: s.id,
   };
@@ -65,6 +67,7 @@ function fromReceived(r: ReceivedConnection): Row {
     createdAt: r.created_at,
     direction: 'received',
     businessId: r.requester_business_id,
+    logoUrl: r.requester_logo_url,
     contactUserId: r.requester_id,
     requestId: r.id,
   };
@@ -133,7 +136,7 @@ export default function ConnectionsScreen() {
       style={styles.card}
       onPress={() => router.push({ pathname: '/business/[id]', params: { id: row.businessId, name: row.name } })}>
       <View style={styles.cardTop}>
-        <Avatar name={row.name} size={46} />
+        <Avatar name={row.name} size={46} logoUrl={row.logoUrl} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={styles.name} numberOfLines={1}>
             {row.name}

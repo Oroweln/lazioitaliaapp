@@ -23,7 +23,7 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/states';
 import { C, Gradients, Radius } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
-import { useRealtime } from '@/context/realtime-context';
+import { useRealtime, useRealtimeStatus } from '@/context/realtime-context';
 import { clockTime } from '@/utils/format';
 
 const PAGE = 50;
@@ -55,6 +55,7 @@ export default function ChatScreen() {
   const params = useLocalSearchParams<{ id: string; name?: string }>();
   const conversationId = Number(params.id);
   const me = useMe();
+  const realtime = useRealtimeStatus();
   const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState(params.name ?? '');
@@ -247,6 +248,11 @@ export default function ChatScreen() {
     // negative offset lets the keyboard cover that padding instead of leaving a gap above it.
     <Screen edges={['top']}>
       <ScreenHeader title={title || 'Conversation'} back />
+      {realtime === 'connecting' && !loading ? (
+        // Without this the screen just looks idle while the device has no connection, which
+        // reads as "the app is broken" rather than "nothing can arrive right now".
+        <Text style={styles.offline}>Reconnecting…</Text>
+      ) : null}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={-insets.bottom}>
         {loading && messages.length === 0 ? (
           <Loading />
@@ -258,6 +264,10 @@ export default function ChatScreen() {
               void loadInitial();
             }}
           />
+        ) : messages.length === 0 ? (
+          // Deliberately outside the list: `inverted` flips ListEmptyComponent, and
+          // counter-flipping it mirrors the text itself on Android.
+          <EmptyState icon="chat" title="Start the conversation" message="Send the first message below." />
         ) : (
           <FlatList
             data={reversed}
@@ -269,11 +279,6 @@ export default function ChatScreen() {
             onEndReachedThreshold={0.3}
             keyboardShouldPersistTaps="handled"
             ListFooterComponent={loadingOlder ? <ActivityIndicator color={C.accentLight} style={{ margin: 12 }} /> : null}
-            ListEmptyComponent={
-              <View style={{ transform: [{ scaleY: -1 }] }}>
-                <EmptyState icon="chat" title="Start the conversation" message="Send the first message below." />
-              </View>
-            }
           />
         )}
         <Composer onSend={send} bottomInset={insets.bottom} />
@@ -376,6 +381,7 @@ function Composer({ onSend, bottomInset }: { onSend: (content: string) => Promis
 }
 
 const styles = StyleSheet.create({
+  offline: { textAlign: 'center', fontSize: 12, color: C.textMuted, paddingBottom: 6 },
   list: { paddingHorizontal: 14, paddingVertical: 12, flexGrow: 1 },
   dayWrap: { alignItems: 'center', marginVertical: 12 },
   day: {

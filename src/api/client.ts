@@ -1,3 +1,4 @@
+import { FileSystemUploadType, uploadAsync } from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 
 import { API_BASE, APP_KEY } from '@/api/config';
@@ -222,6 +223,10 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
     }
   }
 
+  return finish<T>(res, auth, startedIn);
+}
+
+async function finish<T>(res: Response, auth: boolean, startedIn: number): Promise<T> {
   if (!res.ok) {
     const err = await toError(res);
     if (auth && startedIn === epoch) {
@@ -233,6 +238,72 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
 
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;
+}
+
+export type UploadFile = { uri: string; name: string; type: string };
+
+type UploadResponse = { status: number; body: string };
+
+// Native multipart upload rather than fetch + FormData: React Native's fetch cannot read the
+// content:// URIs the image picker returns and fails with an opaque "Network request failed"
+// before anything reaches the network.
+async function sendUpload(path: string, file: UploadFile, token: string | null): Promise<UploadResponse> {
+  const headers: Record<string, string> = { 'X-App-Key': APP_KEY, Accept: 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  try {
+    const res = await uploadAsync(`${API_BASE}${path}`, file.uri, {
+      httpMethod: 'POST',
+      uploadType: FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: file.type,
+      headers,
+    });
+    return { status: res.status, body: res.body ?? '' };
+  } catch (e) {
+    // Keep the real reason: this used to be reported as a connection problem, which sent us
+    // looking at the server for a failure that never left the device.
+    throw new ApiError(0, `Upload failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
+/// Same handling as `finish`, for a response that isn't a `Response`.
+function finishUpload<T>(res: UploadResponse, startedIn: number): T {
+  if (res.status < 200 || res.status >= 300) {
+    let err: ApiError;
+    try {
+      const json = JSON.parse(res.body);
+      err = new ApiError(res.status, json.error ?? 'Upload failed', json.code, json.fields);
+    } catch {
+      err = new ApiError(res.status, res.body || `Upload failed (${res.status})`);
+    }
+    if (startedIn === epoch) {
+      if (err.code === 'account_suspended' || err.status === 401) listener?.onSignedOut();
+      else if (err.code === 'not_approved') listener?.onNotApproved();
+    }
+    throw err;
+  }
+  return (res.body ? JSON.parse(res.body) : undefined) as T;
+}
+
+/// Multipart POST. Always authenticated — the only uploads are account-owned files.
+export async function upload<T>(path: string, file: UploadFile): Promise<T> {
+  const startedIn = epoch;
+
+  if (refreshToken && (!accessToken || tokenExpiresWithin(accessToken, 10))) {
+    await refreshOrSignOut(startedIn);
+  }
+
+  let usedToken = accessToken;
+  let res = await sendUpload(path, file, usedToken);
+
+  if (res.status === 401 && refreshToken && startedIn === epoch) {
+    if (accessToken === usedToken) await refreshOrSignOut(startedIn);
+    usedToken = accessToken;
+    res = await sendUpload(path, file, usedToken);
+  }
+
+  return finishUpload<T>(res, startedIn);
 }
 
 export function errorMessage(e: unknown): string {

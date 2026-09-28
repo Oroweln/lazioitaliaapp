@@ -55,7 +55,7 @@ export default function BusinessScreen() {
         <>
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.hero}>
-              <Avatar name={business.name} size={92} />
+              <Avatar name={business.name} size={92} logoUrl={business.logo_url} />
               <Text style={[Type.title, { textAlign: 'center' }]}>{business.name}</Text>
               {isWebUrl(business.website) ? (
                 <Pressable
@@ -93,7 +93,12 @@ export default function BusinessScreen() {
               <DetailRow icon="apartment" label="Industry" value={business.industry} />
               <DetailRow icon="location_on" label="Location" value={business.location} />
               <DetailRow icon="group" label="Company size" value={business.size ? SIZE_LABELS[business.size] : null} />
-              <DetailRow icon="language" label="Website" value={displayWebsite(business.website)} />
+              <DetailRow
+                icon="language"
+                label="Website"
+                value={displayWebsite(business.website)}
+                onPress={isWebUrl(business.website) ? () => openWebsite(business.website) : undefined}
+              />
             </Section>
           </ScrollView>
 
@@ -162,22 +167,34 @@ function DetailRow({
   icon,
   label,
   value,
+  onPress,
 }: {
   icon: 'apartment' | 'location_on' | 'group' | 'language';
   label: string;
   value: string | null | undefined;
+  onPress?: () => void;
 }) {
   if (!value) return null;
+  const row = (
+    <View style={styles.detailRow}>
+      <Icon name={icon} size={18} />
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={[styles.detailValue, onPress && styles.detailLink]} numberOfLines={2}>
+        {value}
+        {onPress ? ' ↗' : ''}
+      </Text>
+    </View>
+  );
   return (
     <>
       <Divider />
-      <View style={styles.detailRow}>
-        <Icon name={icon} size={18} />
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue} numberOfLines={2}>
-          {value}
-        </Text>
-      </View>
+      {onPress ? (
+        <Pressable onPress={onPress} accessibilityRole="link" accessibilityLabel={`Open ${label} ${value}`}>
+          {row}
+        </Pressable>
+      ) : (
+        row
+      )}
     </>
   );
 }
@@ -255,6 +272,7 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   detailLabel: { color: C.textMuted, fontSize: 13, width: 104 },
   detailValue: { flex: 1, color: C.text, fontSize: 14, textAlign: 'right' },
+  detailLink: { color: C.accentLight },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,

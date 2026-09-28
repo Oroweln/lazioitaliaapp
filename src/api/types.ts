@@ -54,6 +54,8 @@ export type Me = {
   email: string;
   role: string;
   status: AccountStatus;
+  /// Informational only — the server gates nothing on it.
+  email_verified: boolean;
   profile: Profile;
   business: Business | null;
   business_role: BusinessRole | null;
@@ -92,6 +94,7 @@ export type SentConnection = {
   business_name: string;
   business_industry: string | null;
   business_location: string | null;
+  business_logo_url: string | null;
   status: ConnectionStatus;
   message: string | null;
   created_at: string;
@@ -104,6 +107,7 @@ export type ReceivedConnection = {
   requester_name: string | null;
   requester_industry: string | null;
   requester_location: string | null;
+  requester_logo_url: string | null;
   status: ConnectionStatus;
   message: string | null;
   created_at: string;
@@ -116,6 +120,7 @@ export type ConversationSummary = {
   other_user_id: number;
   other_name: string | null;
   other_business_name: string | null;
+  other_business_logo_url: string | null;
   last_message: string | null;
   last_message_at: string | null;
   unread_count: number;

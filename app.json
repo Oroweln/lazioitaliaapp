@@ -9,7 +9,8 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0d0d1a",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.milan.ninkovic.zoeapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -39,7 +40,9 @@
       [
         "expo-font",
         {
-          "fonts": ["./node_modules/@expo-google-fonts/material-symbols/300Light/MaterialSymbols_300Light.ttf"]
+          "fonts": [
+            "./node_modules/@expo-google-fonts/material-symbols/300Light/MaterialSymbols_300Light.ttf"
+          ]
         }
       ]
     ],

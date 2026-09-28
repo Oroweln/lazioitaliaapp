@@ -4,6 +4,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { errorMessage } from '@/api/client';
 import { BrandLockup } from '@/components/brand';
+import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import { FormScroll } from '@/components/form-scroll';
 import { GoldButton, OutlineButton, TextButton } from '@/components/ui/button';
 import { Divider, GlassCard } from '@/components/ui/card';
@@ -20,7 +21,9 @@ export default function PendingScreen() {
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const canEditCompany = me.business_role === 'owner' || me.business_role === 'admin';
+  // Owners only while pending: an invited admin whose own membership is still under review
+  // does not get to reshape the company (the server enforces the same rule).
+  const canEditCompany = me.business_role === 'owner';
 
   const check = async () => {
     setChecking(true);
@@ -46,6 +49,7 @@ export default function PendingScreen() {
     <Screen edges={['top', 'bottom']}>
       <FormScroll contentStyle={styles.content}>
         <BrandLockup tagline={false} />
+        <VerifyEmailBanner />
         <GlassCard style={styles.card}>
           <View style={styles.ring}>
             <Icon name="hourglass_top" size={30} />

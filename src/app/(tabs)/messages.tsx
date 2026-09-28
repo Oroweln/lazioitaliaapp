@@ -9,6 +9,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Divider } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Screen } from '@/components/ui/screen';
+import { OutlineButton } from '@/components/ui/button';
 import { EmptyState, ErrorState, GoldRefreshControl, Loading } from '@/components/ui/states';
 import { C, MaxContentWidth } from '@/constants/theme';
 import { useRealtime } from '@/context/realtime-context';
@@ -47,7 +48,10 @@ export default function MessagesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const hasMore = useRef(false);
+  // State, not a ref: the "load older" footer is rendered from it.
+  const [hasMore, setHasMore] = useState(false);
+  // Mirror of `items` so `loadMore` never acts on a list from a stale render.
+  const itemsRef = useRef<ConversationSummary[] | null>(null);
   const requestId = useRef(0);
   const focused = useRef(false);
   const focusCount = useRef(0);
@@ -61,9 +65,13 @@ export default function MessagesScreen() {
     return Chat.conversations({ limit: PAGE, offset: 0 }).then(
       (page) => {
         if (id !== requestId.current) return;
+        // Recomputed on every first-page fetch: this used to run only on the very first one,
+        // which could leave paging switched off for the rest of the session.
+        setHasMore(page.length === PAGE);
         setItems((cur) => {
-          if (!cur || page.length < PAGE) hasMore.current = page.length === PAGE;
-          return cur ? mergeConversations(cur, page, true) : page;
+          const next = cur ? mergeConversations(cur, page, true) : page;
+          itemsRef.current = next;
+          return next;
         });
         setError(null);
       },
@@ -118,13 +126,35 @@ export default function MessagesScreen() {
 
   const loadingMoreRef = useRef(false);
   const loadMore = async () => {
-    if (!items || !hasMore.current || loadingMoreRef.current) return;
+    const current = itemsRef.current;
+    if (!current || !hasMore || loadingMoreRef.current) return;
     loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
-      const page = await Chat.conversations({ limit: PAGE, offset: Math.max(0, items.length - PAGE_OVERLAP) });
-      hasMore.current = page.length === PAGE;
-      setItems((cur) => (cur ? mergeConversations(cur, page, false) : page));
+      const page = await Chat.conversations({
+        limit: PAGE,
+        offset: Math.max(0, current.length - PAGE_OVERLAP),
+      });
+      const known = new Set(current.map((c) => c.id));
+      const unseen = page.some((c) => !known.has(c.id));
+      setHasMore(page.length === PAGE);
+      if (!unseen && page.length === PAGE) {
+        // A full page of rows we already have means the offset drifted (conversations moved to
+        // the top while we were paging); step past the window instead of re-reading it forever.
+        const skipped = await Chat.conversations({ limit: PAGE, offset: current.length + PAGE });
+        setHasMore(skipped.length === PAGE);
+        setItems((cur) => {
+          const next = cur ? mergeConversations(cur, skipped, false) : skipped;
+          itemsRef.current = next;
+          return next;
+        });
+        return;
+      }
+      setItems((cur) => {
+        const next = cur ? mergeConversations(cur, page, false) : page;
+        itemsRef.current = next;
+        return next;
+      });
     } catch {
       // scrolling again retries
     } finally {
@@ -145,7 +175,7 @@ export default function MessagesScreen() {
         android_ripple={{ color: C.accentDim }}
         style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.glass }]}
         onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id, name } })}>
-        <Avatar name={item.other_business_name ?? name} size={52} />
+        <Avatar name={item.other_business_name ?? name} size={52} logoUrl={item.other_business_logo_url} />
         <View style={styles.body}>
           <View style={styles.topLine}>
             <Text style={[styles.name, unread && styles.nameUnread]} numberOfLines={1}>
@@ -188,9 +218,19 @@ export default function MessagesScreen() {
           ItemSeparatorComponent={() => <Divider style={{ marginLeft: 88 }} />}
           contentContainerStyle={styles.list}
           onEndReached={loadMore}
-          onEndReachedThreshold={0.4}
+          onEndReachedThreshold={0.6}
           refreshControl={<GoldRefreshControl refreshing={refreshing} onRefresh={refresh} />}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.accentLight} style={{ margin: 16 }} /> : null}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator color={C.accentLight} style={{ margin: 16 }} />
+            ) : hasMore && items.length > 0 ? (
+              // onEndReached can fail to fire on some Android layouts; this keeps paging
+              // reachable by tap, and makes "is there more?" visible instead of silent.
+              <View style={styles.footer}>
+                <OutlineButton title="Load older conversations" icon="refresh" compact onPress={loadMore} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <EmptyState
               icon="forum"
@@ -206,6 +246,7 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   list: { paddingBottom: 32, flexGrow: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  footer: { padding: 16, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, paddingVertical: 14 },
   body: { flex: 1, gap: 2 },
   topLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },

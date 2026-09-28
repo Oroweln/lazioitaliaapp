@@ -1,13 +1,15 @@
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { ApiError, errorMessage } from '@/api/client';
 import { Company } from '@/api/endpoints';
 import type { Business, BusinessSize, BusinessUpdate } from '@/api/types';
 import { FormScroll } from '@/components/form-scroll';
 import { OptionPicker } from '@/components/option-picker';
-import { GoldButton } from '@/components/ui/button';
+import { Avatar } from '@/components/ui/avatar';
+import { GoldButton, OutlineButton } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/card';
 import { GoldText } from '@/components/ui/gold-text';
 import { ScreenHeader } from '@/components/ui/header';
@@ -16,18 +18,32 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorBanner, ErrorState, Loading } from '@/components/ui/states';
 import { INDUSTRIES } from '@/constants/industries';
 import { Type } from '@/constants/theme';
-import { useAuth } from '@/context/auth-context';
+import { useAuth, useMe } from '@/context/auth-context';
 import { useAsync } from '@/hooks/use-async';
 import { normalizeWebsite, SIZE_LABELS } from '@/utils/format';
 
 const TEXT_FIELDS = ['name', 'description', 'looking_for', 'location', 'website'] as const;
 type TextField = (typeof TEXT_FIELDS)[number];
 
+const styles = StyleSheet.create({
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  logoActions: { flex: 1, gap: 6 },
+  logoButtons: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
+});
+
 const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({ value: i, label: i }));
+// Mirrors the server's own limits (routes/business.rs), so the usual mistakes are
+// caught before a multi-megabyte upload.
+const LOGO_MAX_BYTES = 5 * 1024 * 1024;
+const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const SIZE_OPTIONS = (Object.keys(SIZE_LABELS) as BusinessSize[]).map((s) => ({ value: s, label: SIZE_LABELS[s] }));
 
 export default function EditBusinessScreen() {
+  const me = useMe();
   const { data, error, loading, retry } = useAsync(() => Company.get());
+  // Mirrors `can_write_business` on the server: the owner may finish the company while their
+  // account is still pending, an admin may not until their own membership is approved.
+  const locked = data && data.role !== 'owner' && !(data.role === 'admin' && me.status === 'approved');
 
   return (
     <Screen edges={['top', 'bottom']}>
@@ -36,8 +52,16 @@ export default function EditBusinessScreen() {
         <Loading />
       ) : error || !data ? (
         <ErrorState message={error ?? 'Company not found'} onRetry={retry} />
-      ) : data.role === 'member' ? (
-        <EmptyState icon="lock" title="Owners and admins only" message="Ask your company owner to update these details." />
+      ) : locked ? (
+        <EmptyState
+          icon="lock"
+          title={data.role === 'member' ? 'Owners and admins only' : 'Awaiting approval'}
+          message={
+            data.role === 'member'
+              ? 'Ask your company owner to update these details.'
+              : 'Your account is still under review. The company owner can update these details in the meantime.'
+          }
+        />
       ) : (
         <BusinessForm business={data.business} />
       )}
@@ -59,6 +83,88 @@ function BusinessForm({ business }: { business: Business }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [logoUrl, setLogoUrl] = useState(business.logo_url);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+
+  // Everything is inside the try: the permission request and the picker itself can throw
+  // (a missing native module, a cancelled system dialog), and those used to disappear
+  // silently because only the upload was guarded.
+  const pickLogo = async () => {
+    if (logoBusy) return;
+    setLogoError(null);
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setLogoError('Allow photo access to choose a logo.');
+        return;
+      }
+      // allowsEditing + a square aspect gives the crop step, so logos aren't squashed
+      // into the round avatars they appear in.
+      const picked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (picked.canceled) return;
+
+      const asset = picked.assets[0];
+      const type = asset.mimeType ?? 'image/jpeg';
+      if (!LOGO_TYPES.includes(type)) {
+        setLogoError('Choose a PNG, JPEG or WEBP image.');
+        return;
+      }
+      if (asset.fileSize && asset.fileSize > LOGO_MAX_BYTES) {
+        setLogoError('That image is larger than 5 MB.');
+        return;
+      }
+
+      setLogoBusy(true);
+      const updated = await Company.uploadLogo({
+        uri: asset.uri,
+        name: asset.fileName ?? `logo.${type.split('/')[1]}`,
+        type,
+      });
+      setLogoUrl(updated.logo_url);
+      await refreshMe();
+    } catch (e) {
+      console.warn('logo upload failed', e);
+      // A missing native module can't be fixed by reloading, so say so rather than
+      // showing a generic failure.
+      const message = e instanceof Error ? e.message : String(e);
+      setLogoError(
+        /native module|doesn't exist|not available/i.test(message)
+          ? 'Image picking needs a rebuild of the app (npx expo run:android).'
+          : errorMessage(e),
+      );
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
+  const removeLogo = () =>
+    Alert.alert('Remove logo', 'Your company will show its initials instead.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          setLogoBusy(true);
+          setLogoError(null);
+          try {
+            const updated = await Company.deleteLogo();
+            setLogoUrl(updated.logo_url);
+            await refreshMe();
+          } catch (e) {
+            console.warn('logo removal failed', e);
+            setLogoError(errorMessage(e));
+          } finally {
+            setLogoBusy(false);
+          }
+        },
+      },
+    ]);
 
   const set = (field: TextField) => (v: string) => setText((t) => ({ ...t, [field]: v }));
 
@@ -103,6 +209,26 @@ function BusinessForm({ business }: { business: Business }) {
     <FormScroll>
       <GlassCard style={{ gap: 16 }}>
         <GoldText style={Type.eyebrow}>Identity</GoldText>
+        <View style={styles.logoRow}>
+          <Avatar name={text.name || business.name} size={72} logoUrl={logoUrl} />
+          <View style={styles.logoActions}>
+            <Text style={Type.label}>Company logo</Text>
+            <Text style={Type.small}>PNG, JPEG or WEBP, up to 5 MB. Shown as a circle.</Text>
+            <View style={styles.logoButtons}>
+              <OutlineButton
+                title={logoUrl ? 'Change' : 'Add logo'}
+                icon="image"
+                compact
+                loading={logoBusy}
+                onPress={pickLogo}
+              />
+              {logoUrl ? (
+                <OutlineButton title="Remove" tone="danger" compact disabled={logoBusy} onPress={removeLogo} />
+              ) : null}
+            </View>
+          </View>
+        </View>
+        <ErrorBanner message={logoError} />
         <Input label="Company name" value={text.name} onChangeText={set('name')} error={fieldErrors.name} />
         <OptionPicker label="Industry" value={industry} options={INDUSTRY_OPTIONS} onChange={setIndustry} allowClear />
         <OptionPicker

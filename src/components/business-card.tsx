@@ -13,7 +13,7 @@ export function BusinessCard({ business, onPress }: { business: Business; onPres
   return (
     <GlassCard onPress={onPress} style={styles.card} radius={20}>
       <View style={styles.top}>
-        <Avatar name={business.name} size={50} />
+        <Avatar name={business.name} size={50} logoUrl={business.logo_url} />
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>
             {business.name}

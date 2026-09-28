@@ -76,6 +76,7 @@ export default function LoginScreen() {
           />
           <ErrorBanner message={error} />
           <GoldButton title="Sign in" onPress={submit} loading={busy} />
+          <TextButton title="Forgot your password?" onPress={() => router.push('/forgot-password')} />
         </GlassCard>
         <View style={styles.footer}>
           <Text style={styles.footerText}>New to the network?</Text>

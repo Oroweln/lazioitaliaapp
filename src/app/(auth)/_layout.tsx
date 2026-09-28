@@ -10,6 +10,7 @@ export default function AuthLayout() {
       <Stack.Protected guard={status === 'signedOut'}>
         <Stack.Screen name="login" />
         <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="forgot-password" options={{ animation: 'slide_from_right' }} />
       </Stack.Protected>
       <Stack.Protected guard={status === 'totp'}>
         <Stack.Screen name="totp" />

@@ -11,9 +11,17 @@ export type RealtimeEvent = { type: 'new_message'; conversation_id: number } | {
 type Listener = (e: RealtimeEvent) => void;
 
 const RealtimeContext = createContext<Set<Listener> | null>(null);
+const RealtimeStatusContext = createContext<RealtimeStatus>('connecting');
+
+export type RealtimeStatus = 'connected' | 'connecting';
 
 const MIN_BACKOFF_MS = 1_000;
-const MAX_BACKOFF_MS = 60_000;
+const MAX_BACKOFF_MS = 30_000;
+// A socket that never opened means the device has no route to the server (airplane mode, lost
+// wifi) — that costs the server nothing to retry, so those attempts get a short ceiling. Without
+// it, a minute of airplane mode pushed the delay to the long ceiling and the app sat there doing
+// nothing long after the radio came back: AppState never changes, so nothing cancelled the timer.
+const MAX_OFFLINE_BACKOFF_MS = 5_000;
 // A connection only counts as healthy after staying up this long. The server silently drops
 // a user's oldest socket past its per-device cap; without this, a flapping connection would
 // reconnect in a tight loop.
@@ -31,6 +39,7 @@ type RNWebSocket = new (
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { status, refreshMe } = useAuth();
   const [listeners] = useState(() => new Set<Listener>());
+  const [live, setLive] = useState<RealtimeStatus>('connecting');
   const refreshMeRef = useRef(refreshMe);
   useEffect(() => {
     refreshMeRef.current = refreshMe;
@@ -56,10 +65,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       keepaliveTimer = null;
     };
 
-    const scheduleReconnect = () => {
+    const scheduleReconnect = (offline = false) => {
       if (stopped || retryTimer || socket || connecting) return;
-      const delay = backoff + Math.random() * 500;
-      backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+      const ceiling = offline ? MAX_OFFLINE_BACKOFF_MS : MAX_BACKOFF_MS;
+      const delay = Math.min(backoff, ceiling) + Math.random() * 500;
+      backoff = Math.min(backoff * 2, ceiling);
       retryTimer = setTimeout(() => {
         retryTimer = null;
         void connect();
@@ -67,6 +77,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     };
 
     const closeSocket = () => {
+      setLive('connecting');
       clearConnectionTimers();
       const s = socket;
       socket = null;
@@ -86,7 +97,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         token = await getAccessToken();
       } catch (e) {
         connecting = false;
-        if (!(e instanceof ApiError && (e.status === 401 || e.status === 403))) scheduleReconnect();
+        // Couldn't even get a token: on a dead network that's a transport failure, not a rejection.
+        const rejected = e instanceof ApiError && (e.status === 401 || e.status === 403);
+        if (!rejected) scheduleReconnect(!(e instanceof ApiError));
         return;
       }
       connecting = false;
@@ -96,8 +109,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       socket = ws;
       let authFailed = false;
       let inactive = false;
+      let opened = false;
 
-      ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
+      ws.onopen = () => {
+        opened = true;
+        // The transport works, so the next failure starts its backoff from scratch. Staying
+        // connected for STABLE_AFTER_MS is a separate signal, handled below.
+        backoff = MIN_BACKOFF_MS;
+        ws.send(JSON.stringify({ type: 'auth', token }));
+      };
       ws.onmessage = (msg) => {
         let data: { type?: string; code?: string; conversation_id?: number };
         try {
@@ -106,6 +126,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           return;
         }
         if (data.type === 'connected') {
+          setLive('connected');
           emit({ type: 'resync' });
           stableTimer = setTimeout(() => {
             backoff = MIN_BACKOFF_MS;
@@ -126,6 +147,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         // or it would evict the live connection on the server.
         if (socket !== ws) return;
         socket = null;
+        setLive('connecting');
         clearConnectionTimers();
         if (stopped) return;
         if (inactive) {
@@ -140,12 +162,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           return;
         }
         if (authFailed) {
-          refreshSession().then(scheduleReconnect, (e) => {
-            if (!(e instanceof ApiError && (e.status === 401 || e.status === 403))) scheduleReconnect();
-          });
+          refreshSession().then(
+            () => scheduleReconnect(),
+            (e) => {
+              if (!(e instanceof ApiError && (e.status === 401 || e.status === 403))) scheduleReconnect();
+            },
+          );
           return;
         }
-        scheduleReconnect();
+        scheduleReconnect(!opened);
       };
     };
 
@@ -173,7 +198,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     };
   }, [status, listeners]);
 
-  return <RealtimeContext.Provider value={listeners}>{children}</RealtimeContext.Provider>;
+  return (
+    <RealtimeContext.Provider value={listeners}>
+      <RealtimeStatusContext.Provider value={live}>{children}</RealtimeStatusContext.Provider>
+    </RealtimeContext.Provider>
+  );
+}
+
+/// 'connecting' covers both "no socket yet" and "reconnecting after a drop"; screens use it to
+/// say so rather than looking merely idle while the radio is off.
+export function useRealtimeStatus() {
+  return useContext(RealtimeStatusContext);
 }
 
 export function useRealtime(handler: Listener) {
