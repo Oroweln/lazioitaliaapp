@@ -157,35 +157,35 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] **Account & security** and **Sign out** work while pending
 
 ### Discover
-- [X] Lists approved companies; your own company is not shown
+- [x] Lists approved companies; your own company is not shown
 - [x] Search filters by name, description and city (results update after typing stops)
 - [x] Industry chips filter; tapping an active chip clears it; **All** resets
-- [X] Scrolling to the bottom loads more (with 20+ companies)
+- [x] Scrolling to the bottom loads more (with 20+ companies)
 - [x] Pull-to-refresh works
 - [x] Empty result shows "No companies found"
 
 ### Company page
-- [X] Shows about, looking for, industry, location, size, website
+- [x] Shows about, looking for, industry, location, size, website
 - [x] Website link opens the browser; a non-http website (set via API) is **not** shown as a link(you cannot click the website)
-- [X] **Connect** opens the sheet; optional note has a 500-char counter; sheet stays above the keyboard
-- [X] After sending: button changes to "Request sent" and a "Request pending" tag appears
+- [x] **Connect** opens the sheet; optional note has a 500-char counter; sheet stays above the keyboard
+- [x] After sending: button changes to "Request sent" and a "Request pending" tag appears
 - [x] Sending again from another member of the same company shows "Connection request already sent"
-- [X] If B already sent A a request, A's owner tapping **Connect** connects immediately; an A *member* sees
+- [x] If B already sent A a request, A's owner tapping **Connect** connects immediately; an A *member* sees
       "Your owner or admin can accept it"
 - [x] Connected company shows **Message** → opens the chat
 - [x] Opening a company that has since been unlisted shows "This company is no longer listed…"; **Try again**
       shows a loading state
 
 ### Connections
-- [X] **Pending** tab: "Received" shows incoming requests with the note; "Sent" shows your outgoing requests;
+- [x] **Pending** tab: "Received" shows incoming requests with the note; "Sent" shows your outgoing requests;
       "Declined by you" shows requests you declined
-- [X] Owner/admin sees **Accept** / **Decline**; decline asks for confirmation
+- [x] Owner/admin sees **Accept** / **Decline**; decline asks for confirmation
 - [x] A member sees "Your company owner or admin can accept this request" instead of buttons
-- [X] **Accept** moves the company to the **Connected** tab; the other side sees it after refresh
-- [X] Counts on the segment labels are correct
-- [X] Tapping a card opens that company's page
-- [z] **Message** opens the chat; fast double-tap opens it only once
-- [X] Returning to the tab refreshes the data; pull-to-refresh works
+- [x] **Accept** moves the company to the **Connected** tab; the other side sees it after refresh
+- [x] Counts on the segment labels are correct
+- [x] Tapping a card opens that company's page
+- [x] **Message** opens the chat; fast double-tap opens it only once
+- [x] Returning to the tab refreshes the data; pull-to-refresh works
 
 ### Messages list
 - [x] Shows the other person's name, their company, last message and time
@@ -194,7 +194,6 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] New message from B moves the conversation to the top and updates the badge (tab open, no refresh)
 - [x] While in another tab, a new message arrives → switching to Messages shows it
 - [x] With 50+ conversations, scrolling loads more and nothing is duplicated or skipped
-  (retest: paging state fixed, and a **Load older conversations** button now appears at the end of the list whenever more exist — if the button shows but scrolling never loads, `onEndReached` is the culprit)
 - [x] Empty state for a new account
 
 ### Chat
@@ -205,8 +204,8 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] Messages from B appear live without refreshing
 - [x] Scrolling up loads older messages (conversation with 50+ messages)
 - [x] Input sits directly on top of the keyboard, with no gap and no jump when the keyboard opens/closes
-- [X] Multi-line messages grow the input up to a max height; 4000-char limit enforced
-- [X] Typing stays smooth in a long conversation
+- [x] Multi-line messages grow the input up to a max height; 4000-char limit enforced
+- [x] Typing stays smooth in a long conversation
 - [x] Opening the chat within the first seconds after launch still shows messages B sent at that moment
 
 ### Realtime & connectivity
@@ -214,7 +213,6 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] Background for a long time with 100+ messages sent meanwhile → chat shows the newest, scrolling up loads
       the rest with no gap
 - [x] Toggle airplane mode on/off in a chat → live messages resume on their own within ~5 s
-  *(retest: reconnect backoff no longer climbs to a minute while offline; a **Reconnecting…** line shows under the chat header while the socket is down)*
 - [x] Same account signed in on two phones → both receive live messages; no constant reconnecting (watch
       server logs)
 - [x] Opening the invite share sheet or authenticator app and returning doesn't break live updates
@@ -234,7 +232,7 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] Create a **Member** invite → code shown once with **Share invite**; share sheet opens with instructions
 - [x] Register account C with that code → C appears in the team list with the right role
 - [x] Create an **Admin** invite → C2 joins as admin and can accept requests
-- [x] A pending invited admin gets **no** "Complete company profile" button, and `PUT /business`, `POST /business/logo`, `POST /business/invites` all answer 403 for them (server rebuild required)
+- [x] A pending invited admin gets **no** "Complete company profile" button, and `PUT /business`, `POST /business/logo`, `POST /business/invites` all answer 403 for them
 - [x] The company **owner** can still edit the company while pending (onboarding path must keep working)
 - [x] **Revoke** asks for confirmation and removes the invite; a revoked code can't be used
 
