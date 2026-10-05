@@ -7,6 +7,7 @@ import { FormScroll } from '@/components/form-scroll';
 import { OptionPicker } from '@/components/option-picker';
 import { PrimaryButton } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Kicker } from '@/components/ui/kicker';
 import { ScreenHeader } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
@@ -14,7 +15,7 @@ import { Segmented } from '@/components/ui/segmented';
 import { ErrorBanner } from '@/components/ui/states';
 import { Brand } from '@/constants/brand';
 import { INDUSTRIES } from '@/constants/industries';
-import { C, Type } from '@/constants/theme';
+import { C, Font, Type } from '@/constants/theme';
 import { REGISTERED_LOGIN_FAILED, useAuth } from '@/context/auth-context';
 
 type Mode = 'company' | 'invite';
@@ -98,8 +99,8 @@ export default function RegisterScreen() {
           ]}
         />
 
-        <Card style={styles.card}>
-          <Text style={Type.eyebrow}>About you</Text>
+        <Card style={styles.card} edge>
+          <Kicker n={1} label="About you" />
           <Input label="Full name" value={fullName} onChangeText={setFullName} placeholder="Name Surname" autoComplete="name" />
           <Input
             label="Email"
@@ -121,8 +122,8 @@ export default function RegisterScreen() {
         </Card>
 
         {mode === 'company' ? (
-          <Card style={styles.card}>
-            <Text style={Type.eyebrow}>Your company</Text>
+          <Card style={styles.card} edge>
+            <Kicker n={2} label="Your company" />
             <Input label="Company name" value={companyName} onChangeText={setCompanyName} placeholder="Company S.r.l." />
             <OptionPicker
               label="Industry"
@@ -131,11 +132,11 @@ export default function RegisterScreen() {
               placeholder="Select industry"
               onChange={setIndustry}
             />
-            <Input label="Location" value={location} onChangeText={setLocation} placeholder="Milan, Italy" />
+            <Input label="Location" value={location} onChangeText={setLocation} placeholder="Roma, Lazio" />
           </Card>
         ) : (
-          <Card style={styles.card}>
-            <Text style={Type.eyebrow}>Join your company</Text>
+          <Card style={styles.card} edge>
+            <Kicker n={2} label="Join your company" />
             <Text style={styles.hint}>Ask your company owner or admin for an invite code from their Profile.</Text>
             <Input
               label="Invite code"
@@ -156,6 +157,6 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 16, padding: 22 },
-  hint: { color: C.textDim, fontSize: 13, lineHeight: 19 },
+  card: { gap: 16, padding: 22, paddingTop: 26 },
+  hint: { color: C.textDim, fontFamily: Font.regular, fontSize: 13, lineHeight: 19 },
 });

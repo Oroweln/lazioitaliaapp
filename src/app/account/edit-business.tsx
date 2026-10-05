@@ -237,7 +237,7 @@ function BusinessForm({ business }: { business: Business }) {
           onChange={(v) => setSize(v as BusinessSize | null)}
           allowClear
         />
-        <Input label="Location" value={text.location} onChangeText={set('location')} placeholder="Milan, Italy" error={fieldErrors.location} />
+        <Input label="Location" value={text.location} onChangeText={set('location')} placeholder="Roma, Lazio" error={fieldErrors.location} />
         <Input
           label="Website"
           value={text.website}

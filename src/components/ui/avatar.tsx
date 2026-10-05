@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { mediaUrl } from '@/api/config';
-import { C } from '@/constants/theme';
+import { metal } from '@/components/ui/metal';
+import { C, Font } from '@/constants/theme';
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -23,32 +24,37 @@ export function Avatar({ name, size = 48, logoUrl }: Props) {
   const [failed, setFailed] = useState(false);
   const uri = failed ? null : mediaUrl(logoUrl);
 
+  const ring = Math.max(2, Math.round(size / 28));
+  const inner = size - ring * 2;
+
+  // A brushed-steel frame around the logo (or a teal disc with ivory initials), like the website.
   return (
-    <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2 }]}>
-      {uri ? (
-        <Image
-          source={{ uri }}
-          style={{ width: size, height: size }}
-          contentFit="cover"
-          transition={150}
-          onError={() => setFailed(true)}
-          accessibilityLabel={`${name} logo`}
-        />
-      ) : (
-        <Text style={[styles.text, { fontSize: size * 0.34 }]}>{initials(name)}</Text>
-      )}
+    <View style={[styles.frame, metal('steel'), { width: size, height: size, borderRadius: size / 2, padding: ring }]}>
+      <View style={[styles.circle, { width: inner, height: inner, borderRadius: inner / 2 }]}>
+        {uri ? (
+          <Image
+            source={{ uri }}
+            style={{ width: inner, height: inner }}
+            contentFit="cover"
+            transition={150}
+            onError={() => setFailed(true)}
+            accessibilityLabel={`${name} logo`}
+          />
+        ) : (
+          <Text style={[styles.text, { fontSize: inner * 0.38 }]}>{initials(name)}</Text>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  frame: { boxShadow: '0px 6px 14px -8px rgba(3,95,105,0.6)' },
   circle: {
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+    backgroundColor: C.ink,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  text: { color: C.textDim, fontWeight: '600' },
+  text: { color: C.onInk, fontFamily: Font.serif },
 });

@@ -138,11 +138,11 @@ const styles = StyleSheet.create({
   tokenBox: {
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: C.border,
+    borderColor: C.steel,
     borderRadius: Radius.md,
     padding: 16,
     backgroundColor: C.inputFill,
   },
-  token: { color: C.accent, fontSize: 15, fontFamily: 'monospace', textAlign: 'center' },
+  token: { color: C.text, fontSize: 15, fontFamily: 'monospace', textAlign: 'center' },
   invite: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 });

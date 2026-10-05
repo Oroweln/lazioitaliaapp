@@ -6,11 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**Design-neutral template** of `b2bzoeapp` (the Zoe Milano B2B app): an Android-first Expo (SDK 57,
-expo-router) client for the b2bserver Rust backend two directories up (`../../`, see that repo's `CLAUDE.md`
-for the server side) — real login/registration, Discover, company connections and live chat. Functionality is
-identical to `b2bzoeapp`; only the look was stripped to a neutral grayscale placeholder so a derived app can be
-repainted with a completely different design. Don't add a real design here — do it in the derived app.
+**LazioItalia.app** mobile client, derived from the design-neutral `b2btemplate` of `b2bzoeapp` (the Zoe Milano
+B2B app): an Android-first Expo (SDK 57, expo-router) client for the b2bserver Rust backend two directories up
+(`../../`, see that repo's `CLAUDE.md` for the server side) — real login/registration, Discover, company
+connections and live chat. Functionality is identical to `b2bzoeapp`; only the look differs. The design follows the
+LazioItalia.app website (the `lazio` SvelteKit repo — `src/app.css` teal theme and `exports/design-prompt.md`):
+deep-teal surfaces, travertine work surfaces, signal-red metal buttons, brushed-steel edges/discs, Tinos Bold
+headlines over Inter. Brand media (logo mark, wordmarks, hero photo) are PNG renders of the site's
+`static/brand/` and `static/media/` files.
 
 ### Keeping in sync with `b2bzoeapp`
 
@@ -21,19 +24,18 @@ original but differ in names/styles (`GoldButton` → `PrimaryButton`, `OutlineB
 `GlassCard` → `Card`, `GoldRefreshControl` → `AppRefreshControl`, `GoldText` → `<Text style={Type.eyebrow}>`,
 Tag tone `gold` → `accent`, `Zoe Milano` → `Brand.name`), so port changes there by hand.
 
-### Repainting a derived app
+### Where the design lives
 
-1. `src/constants/theme.ts` — palette `C`, `Type`, `Radius`, `Spacing`, and `Scheme` (`'light' | 'dark'`; drives
-   status bar, keyboard appearance and navigation theme).
-2. `src/constants/brand.ts` — `Brand.name` / `Brand.tagline`, used in every user-facing mention of the app.
-3. `src/components/ui/*` and `src/components/brand.tsx` (`BrandLockup` is a box + text placeholder — put the
-   logo there), then per-screen `StyleSheet`s in `src/app/`.
-4. `assets/images/` — icon, adaptive icon (foreground/background/monochrome), splash, favicon are grey
-   placeholders.
-5. `app.json` — `name`, `slug`, `scheme`, `ios.bundleIdentifier`, `android.package` (placeholders
-   `com.example.b2btemplate`), `userInterfaceStyle` (must match `Scheme`), and the native
-   root/splash/adaptive-icon `backgroundColor`s (must match `C.bg`). Also `name` in `package.json`.
-6. `.env` — `EXPO_PUBLIC_APP_KEY` if the derived app is a different tenant on the server.
+1. `src/constants/theme.ts` — palette `C`, `Metal` gradients, `Font` families, `Type`, `Radius`, `Spacing`, and
+   `Scheme` (`'light' | 'dark'`; drives keyboard appearance and navigation theme).
+2. `src/constants/brand.ts` — `Brand.name` / `Brand.tagline` / `Brand.descriptor`.
+3. `src/components/ui/*`, `src/components/brand.tsx` (`BrandLockup`), `src/components/auth-hero.tsx`, then
+   per-screen `StyleSheet`s in `src/app/`.
+4. `assets/images/` — icon, adaptive icon, splash and favicon (the site's logo box on deep teal `C.nav`),
+   `brand/` (mark, red and ivory wordmarks) and `hero-cities.jpg` (the site's hero still, teal grade baked in).
+5. `app.json` — `name`, `slug`, `scheme`, bundle id/package `app.lazioitalia`, `userInterfaceStyle` (must match
+   `Scheme`), the root `backgroundColor` (`C.bg`) and the splash/adaptive-icon `backgroundColor`s (`C.nav`, the
+   same as the boot screen in the root layout).
 
 ## Commands
 
@@ -128,18 +130,25 @@ it. The chat thread pages backwards until the newest page overlaps what's on scr
 
 ### Theme (`src/constants/theme.ts`, `src/components/ui/`)
 
-Placeholder palette `C` (semantic tokens: `bg`, `surface`, `surfacePressed`, `inputFill`, `text`/`textDim`/
-`textHint`/`textMuted`, `accent`/`onAccent`/`accentDim`, `border`, `divider`, `scrim`, `danger`/`dangerDim`,
-`success`, `warning`), `Scheme`, `Radius`, `Spacing`, `Type` presets. Never hardcode colors in screens — always go
-through `C`, so a repaint touches only the theme. Build screens from the primitives: `Screen` (background + safe
-area), `ScreenHeader`, `Card`/`Divider`, `PrimaryButton`/`SecondaryButton`/`TextButton`, `Input`, `Avatar`, `Tag`,
-`Segmented`/`Chip`, `Icon`, and `states.tsx` (loading/empty/error, `AppRefreshControl`). `Icon` renders Material
-Symbols (300 Light) as text from a font the root layout loads before hiding the splash (it is also embedded
-natively via the `expo-font` plugin in `app.json`; the file name must match `ICON_FONT`); to use a new icon add
-its codepoint to `GLYPHS` in `icon.tsx`. A derived app can swap the icon set by reimplementing `Icon` behind the
-same `IconName` keys. Every new `TextInput` needs `keyboardAppearance={Scheme}` and themed placeholder/cursor
-colors (the `Input` primitive already does this); every navigator needs `contentStyle`/`sceneStyle`
-`backgroundColor: C.bg` so transitions never flash a different color.
+Palette `C` (semantic tokens: `bg`, `surface`, `surfacePressed`, `inputFill`, `text`/`textDim`/`textHint`/
+`textMuted`, `accent`/`onAccent`/`accentDim`/`accentText`, `border`, `divider`, `scrim`, `danger`/`dangerDim`,
+`success`, `warning`, plus the deep-teal set `nav`/`ink`/`ink2`/`ink3`/`hero` with `onInk`/`onInkMuted`/
+`lineOnInk`/`coral`/`mint`/`steel`). Red text on teal is too low-contrast: on `ink` surfaces use `onInk`, and
+`coral` for a red accent. `Metal` holds the site's 115° metal gradients, applied with `metal(finish)` /
+`<MetalEdge>` (`components/ui/metal.tsx`) through RN's `experimental_backgroundImage`, always over a solid
+`backgroundColor` fallback. `Font` maps weights to families (`Inter_400Regular` … `Tinos_700Bold`), each loaded in
+the root layout and embedded natively via the `expo-font` plugin — set `fontFamily` from `Font` (or spread a `Type`
+preset) on every text style and never add `fontWeight` (Android would fake-bold). Never hardcode colors in screens —
+always go through `C`. Build screens from the primitives: `Screen` (travertine background, deep-teal status-bar
+band + safe area), `ScreenHeader` (teal bar/hero with steel edge), `Card` (`tone="ink"` for the website's teal
+"ticket", `edge` for the steel top line)/`Divider`, `PrimaryButton` (metal-red pill)/`SecondaryButton`/`TextButton`,
+`Input`, `Avatar` (steel frame), `Tag` (uppercase pill), `Segmented`/`Chip`, `Kicker` (numbered "01" label),
+`Icon`, and `states.tsx` (loading/empty/error, `AppRefreshControl`). `Icon` renders Material Symbols (300 Light) as
+text from a font the root layout loads before hiding the splash (it is also embedded natively via the `expo-font`
+plugin in `app.json`; the file name must match `ICON_FONT`); to use a new icon add its codepoint to `GLYPHS` in
+`icon.tsx`. Every new `TextInput` needs `keyboardAppearance={Scheme}` and themed placeholder/cursor colors (the
+`Input` primitive already does this); every navigator needs `contentStyle`/`sceneStyle` `backgroundColor: C.bg` so
+transitions never flash a different color. The status bar is always `light` (every screen's top edge is teal).
 
 ### Conventions
 

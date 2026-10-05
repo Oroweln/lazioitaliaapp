@@ -2,14 +2,14 @@ import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { errorMessage } from '@/api/client';
-import { BrandLockup } from '@/components/brand';
+import { AuthHero } from '@/components/auth-hero';
 import { FormScroll } from '@/components/form-scroll';
 import { PrimaryButton, TextButton } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
-import { Type } from '@/constants/theme';
+import { Font, Type } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 
 export default function TotpScreen() {
@@ -41,36 +41,39 @@ export default function TotpScreen() {
   return (
     <Screen edges={['top', 'bottom']}>
       <FormScroll contentStyle={styles.content}>
-        <BrandLockup tagline={false} />
-        <Card style={styles.card}>
-          <View style={{ gap: 6 }}>
-            <Text style={Type.eyebrow}>Two-factor authentication</Text>
-            <Text style={Type.title}>Verification code</Text>
-            <Text style={Type.bodyDim}>Open your authenticator app and enter the current code.</Text>
-          </View>
-          <Input
-            value={code}
-            onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000"
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            textContentType="oneTimeCode"
-            maxLength={6}
-            autoFocus
-            style={styles.code}
-            onSubmitEditing={submit}
-          />
-          <ErrorBanner message={error} />
-          <PrimaryButton title="Verify" onPress={submit} loading={busy} />
-        </Card>
-        <TextButton title="← Back to sign in" onPress={cancelTotp} />
+        <AuthHero eyebrow="Secure sign-in" title="One more step into" accent="Lazio." />
+        <View style={styles.body}>
+          <Card style={styles.card} edge>
+            <View style={{ gap: 6 }}>
+              <Text style={Type.eyebrow}>Two-factor authentication</Text>
+              <Text style={Type.title}>Verification code</Text>
+              <Text style={Type.bodyDim}>Open your authenticator app and enter the current code.</Text>
+            </View>
+            <Input
+              value={code}
+              onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
+              maxLength={6}
+              autoFocus
+              style={styles.code}
+              onSubmitEditing={submit}
+            />
+            <ErrorBanner message={error} />
+            <PrimaryButton title="Verify" onPress={submit} loading={busy} />
+          </Card>
+          <TextButton title="← Back to sign in" onPress={cancelTotp} />
+        </View>
       </FormScroll>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { justifyContent: 'center', gap: 28 },
-  card: { gap: 18, padding: 24 },
-  code: { fontSize: 26, letterSpacing: 10, textAlign: 'center' },
+  content: { padding: 0, gap: 0 },
+  body: { paddingHorizontal: 20, paddingTop: 22, gap: 24 },
+  card: { gap: 18, padding: 22, paddingTop: 26 },
+  code: { fontFamily: Font.extrabold, fontSize: 26, letterSpacing: 10, textAlign: 'center' },
 });

@@ -3,14 +3,14 @@ import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ApiError, errorMessage } from '@/api/client';
-import { BrandLockup } from '@/components/brand';
+import { AuthHero } from '@/components/auth-hero';
 import { FormScroll } from '@/components/form-scroll';
 import { PrimaryButton, TextButton } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
-import { C, Type } from '@/constants/theme';
+import { C, Font, Type } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 
 export default function LoginScreen() {
@@ -46,40 +46,42 @@ export default function LoginScreen() {
   return (
     <Screen edges={['top', 'bottom']}>
       <FormScroll contentStyle={styles.content}>
-        <BrandLockup />
-        <Card style={styles.card}>
-          <View style={{ gap: 6 }}>
-            <Text style={Type.eyebrow}>Member access</Text>
-            <Text style={Type.title}>Welcome back</Text>
+        <AuthHero eyebrow="Member access" title="Welcome back to" accent="Lazio." />
+        <View style={styles.body}>
+          <Card style={styles.card} edge>
+            <View style={{ gap: 6 }}>
+              <Text style={Type.eyebrow}>Log in</Text>
+              <Text style={Type.title}>Sign in to your account</Text>
+            </View>
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@company.com"
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              textContentType="emailAddress"
+            />
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••••••"
+              secureTextEntry
+              autoComplete="password"
+              textContentType="password"
+              onSubmitEditing={submit}
+              returnKeyType="go"
+            />
+            <ErrorBanner message={error} />
+            <PrimaryButton title="Sign in" onPress={submit} loading={busy} />
+            <TextButton title="Forgot your password?" onPress={() => router.push('/forgot-password')} />
+          </Card>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>New to the network?</Text>
+            <TextButton title="Request membership →" onPress={() => router.push('/register')} />
           </View>
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@company.com"
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-          />
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••••••"
-            secureTextEntry
-            autoComplete="password"
-            textContentType="password"
-            onSubmitEditing={submit}
-            returnKeyType="go"
-          />
-          <ErrorBanner message={error} />
-          <PrimaryButton title="Sign in" onPress={submit} loading={busy} />
-          <TextButton title="Forgot your password?" onPress={() => router.push('/forgot-password')} />
-        </Card>
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>New to the network?</Text>
-          <TextButton title="Request membership →" onPress={() => router.push('/register')} />
         </View>
       </FormScroll>
     </Screen>
@@ -87,8 +89,9 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { justifyContent: 'center', gap: 28 },
-  card: { gap: 18, padding: 24 },
+  content: { padding: 0, gap: 0 },
+  body: { paddingHorizontal: 20, paddingTop: 22, gap: 24 },
+  card: { gap: 18, padding: 22, paddingTop: 26 },
   footer: { alignItems: 'center', gap: 6 },
-  footerText: { color: C.textMuted, fontSize: 13 },
+  footerText: { color: C.textMuted, fontFamily: Font.regular, fontSize: 13 },
 });

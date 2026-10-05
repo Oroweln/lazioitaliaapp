@@ -1,7 +1,7 @@
 import { useState, type Ref } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-import { C, Radius, Scheme, Type } from '@/constants/theme';
+import { C, Font, Radius, Scheme, Type } from '@/constants/theme';
 
 type Props = TextInputProps & {
   label?: string;
@@ -16,8 +16,8 @@ export function Input({ label, error, style, multiline, onFocus, onBlur, ...rest
       {label && <Text style={Type.label}>{label}</Text>}
       <TextInput
         placeholderTextColor={C.textHint}
-        selectionColor={C.accentDim}
-        cursorColor={C.accent}
+        selectionColor="rgba(3,95,105,0.25)"
+        cursorColor={C.text}
         keyboardAppearance={Scheme}
         multiline={multiline}
         onFocus={(e) => {
@@ -31,7 +31,8 @@ export function Input({ label, error, style, multiline, onFocus, onBlur, ...rest
         style={[
           styles.input,
           multiline && styles.multiline,
-          { borderColor: error ? C.danger : focused ? C.accent : C.border },
+          { borderColor: error ? C.danger : focused ? C.text : C.border },
+          focused && !error && styles.focused,
           style,
         ]}
         {...rest}
@@ -49,10 +50,12 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    fontFamily: Font.regular,
     fontSize: 15,
     color: C.text,
     backgroundColor: C.inputFill,
   },
+  focused: { boxShadow: '0px 0px 0px 3px rgba(3,95,105,0.14)' },
   multiline: { minHeight: 110, textAlignVertical: 'top' },
-  error: { fontSize: 12, color: C.danger },
+  error: { fontFamily: Font.medium, fontSize: 12, color: C.danger },
 });

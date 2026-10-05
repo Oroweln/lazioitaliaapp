@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon, type IconName } from '@/components/ui/icon';
-import { C, Radius } from '@/constants/theme';
+import { metal } from '@/components/ui/metal';
+import { C, Font, Radius } from '@/constants/theme';
 
 type Props = {
   icon: IconName;
@@ -12,15 +13,16 @@ type Props = {
 };
 
 export function ListRow({ icon, title, subtitle, onPress, tone = 'default' }: Props) {
-  const color = tone === 'danger' ? C.danger : C.accent;
+  const color = tone === 'danger' ? C.onAccent : C.nav;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
-      android_ripple={{ color: C.accentDim }}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.accentDim }]}>
-      <View style={[styles.iconWrap, tone === 'danger' && { borderColor: C.danger }]}>
+      android_ripple={{ color: 'rgba(3,95,105,0.08)' }}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: 'rgba(3,95,105,0.06)' }]}>
+      {/* Steel disc with a dark-teal icon; metal red for destructive rows. */}
+      <View style={[styles.iconWrap, metal(tone === 'danger' ? 'red' : 'steel')]}>
         <Icon name={icon} size={20} color={color} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
@@ -35,14 +37,12 @@ export function ListRow({ icon, title, subtitle, onPress, tone = 'default' }: Pr
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 4, borderRadius: Radius.md },
   iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
-    borderColor: C.border,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { fontSize: 15, color: C.text },
-  subtitle: { fontSize: 12, color: C.textMuted },
+  title: { fontFamily: Font.semibold, fontSize: 15, color: C.text },
+  subtitle: { fontFamily: Font.regular, fontSize: 12, color: C.textMuted },
 });

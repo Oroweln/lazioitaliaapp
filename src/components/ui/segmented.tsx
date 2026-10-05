@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { C, Radius } from '@/constants/theme';
+import { metal } from '@/components/ui/metal';
+import { C, Font, Radius } from '@/constants/theme';
 
 type Props<T extends string> = {
   options: { value: T; label: string }[];
@@ -20,7 +21,7 @@ export function Segmented<T extends string>({ options, value, onChange }: Props<
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             style={[styles.item, active && styles.active]}>
-            <Text style={[styles.text, { color: active ? C.onAccent : C.textDim }]}>{o.label}</Text>
+            <Text style={[styles.text, { color: active ? C.onInk : C.textDim }]}>{o.label}</Text>
           </Pressable>
         );
       })}
@@ -34,26 +35,27 @@ export function Chip({ label, active, onPress }: { label: string; active: boolea
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      style={[styles.chip, active ? styles.chipActive : styles.chipIdle]}>
-      <Text style={[styles.chipText, { color: active ? C.onAccent : C.textDim }]}>{label}</Text>
+      style={[styles.chip, active ? [styles.chipActive, metal('red')] : styles.chipIdle]}>
+      <Text style={[styles.chipText, { color: active ? C.onAccent : C.text }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  // Teal track with a teal pill for the active segment (the website's sticky section bar).
   wrap: {
     flexDirection: 'row',
-    borderRadius: Radius.md,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: C.border,
     backgroundColor: C.surface,
-    padding: 3,
+    padding: 4,
   },
-  item: { flex: 1, paddingVertical: 8, borderRadius: Radius.sm, alignItems: 'center' },
-  active: { backgroundColor: C.accent },
-  text: { fontSize: 13, fontWeight: '600' },
-  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.pill, borderWidth: 1 },
+  item: { flex: 1, paddingVertical: 9, borderRadius: Radius.pill, alignItems: 'center' },
+  active: { backgroundColor: C.ink },
+  text: { fontFamily: Font.bold, fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.pill, borderWidth: 1 },
   chipIdle: { borderColor: C.border, backgroundColor: C.surface },
-  chipActive: { borderColor: C.accent, backgroundColor: C.accent },
-  chipText: { fontSize: 12, fontWeight: '600' },
+  chipActive: { borderColor: C.accent },
+  chipText: { fontFamily: Font.bold, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase' },
 });

@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
 import { Tag, type TagTone } from '@/components/ui/tag';
-import { C, MaxContentWidth, Type } from '@/constants/theme';
+import { C, Font, MaxContentWidth, Type } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
 import { invalidateConnections, loadConnections, useConnections } from '@/hooks/use-connections';
 import { useOpenChat } from '@/hooks/use-open-chat';
@@ -242,15 +242,24 @@ export default function ConnectionsScreen() {
 }
 
 const styles = StyleSheet.create({
-  segment: { paddingHorizontal: 20, paddingBottom: 12 },
+  segment: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   list: { paddingHorizontal: 20, paddingBottom: 32, flexGrow: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
-  section: { marginTop: 12, marginBottom: 10 },
+  section: { marginTop: 14, marginBottom: 10 },
   card: { gap: 12, padding: 16 },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  name: { fontSize: 16, color: C.text },
-  subtitle: { fontSize: 12, color: C.textMuted },
-  time: { fontSize: 11, color: C.textMuted },
-  message: { fontSize: 13, color: C.textDim, lineHeight: 20 },
+  name: { fontFamily: Font.serif, fontSize: 18, lineHeight: 22, color: C.text },
+  subtitle: { fontFamily: Font.semibold, fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', color: C.textMuted },
+  time: { fontFamily: Font.medium, fontSize: 11, color: C.textMuted },
+  // Quoted note with the website's red left rule.
+  message: {
+    fontFamily: Font.regular,
+    fontSize: 13,
+    color: C.textDim,
+    lineHeight: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: C.accent,
+    paddingLeft: 10,
+  },
   actions: { flexDirection: 'row', gap: 10 },
-  hint: { fontSize: 12, color: C.textMuted },
+  hint: { fontFamily: Font.regular, fontSize: 12, color: C.textMuted },
 });
