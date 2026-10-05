@@ -1,11 +1,13 @@
-# Zoe Milano — B2B Network App
+# B2B Network App — design-neutral template
 
-Android-first mobile app for the Zoe Milano B2B network. Companies discover each other, send connection
-requests, and — once connected — their people chat in real time.
+Template for apps derived from **b2bzoeapp** (the Zoe Milano B2B network app). Companies discover each other,
+send connection requests, and — once connected — their people chat in real time.
 
-This app is the frontend of **b2bserver**, the Rust/Axum backend two directories up (`../../`). Its look
-follows the [Zoe Milano website](https://github.com/Oroweln/zoemilanocomv2): a dark-only navy and champagne-gold
-theme with no light mode.
+All functionality is identical to b2bzoeapp; the design has been stripped to a neutral grayscale placeholder
+(no brand colors, gradients, logos or brand names) so a new app can start from here and be repainted with a
+completely different design. See **Repainting** below.
+
+This app is the frontend of **b2bserver**, the Rust/Axum backend two directories up (`../../`).
 
 ---
 
@@ -14,7 +16,7 @@ theme with no light mode.
 **Account**
 - Sign in, with two-factor authentication (TOTP) when it is enabled
 - Request membership as a new company, or join an existing company with an invite code
-- "Awaiting approval" screen until Zoe Milano approves the account
+- "Awaiting approval" screen until the network operator approves the account
 - Stays signed in across restarts (refresh token kept in secure storage)
 
 **Discover**
@@ -43,7 +45,7 @@ theme with no light mode.
 
 - Expo SDK 57, React Native 0.86, React 19 (React Compiler enabled)
 - expo-router (file-based routing, `Stack.Protected` auth guards)
-- expo-secure-store, expo-linear-gradient, masked-view, Material Symbols icon font
+- expo-secure-store, expo-image, Material Symbols icon font
 - Plain `fetch` + React Native `WebSocket` against b2bserver's `/api/v2`
 
 ---
@@ -112,21 +114,17 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 (**A** and **B**), ideally on two devices; a third account (**C**) is used for invites. Tick each box as it passes.
 
 ### Look & feel
-- [x] Launcher icon is the gold Z on navy (adaptive icon, including the themed/monochrome variant)
-- [x] Splash screen is navy with the gold Z; no white or blue flash at launch
-- [x] With the phone set to **light mode**, every screen stays dark: no white backgrounds, cards, headers or tab bar
-- [x] Screen transitions (push, back, tab switch) never flash white
-- [x] Keyboard is the dark variant; text cursor and selection handles are gold
-- [x] Alerts and confirmation dialogs are dark
-- [x] Pull-to-refresh spinner is gold on a dark background
-- [x] Status bar icons are light and readable
-- [x] Icons show on first render (tabs, buttons, list chevrons), with no blank boxes or flicker
-- [x] Layout works on a small phone and with large system font size
+- [ ] Launcher icon, adaptive icon (including the themed/monochrome variant) and splash use the app's assets
+- [ ] No flash of a different background color at launch or during screen transitions (push, back, tab switch)
+- [ ] Keyboard appearance, status bar icons, alerts and dialogs match `Scheme`
+- [ ] Text cursor/selection and pull-to-refresh spinner use theme colors
+- [ ] Icons show on first render (tabs, buttons, list chevrons), with no blank boxes or flicker
+- [ ] Layout works on a small phone and with large system font size
 
 ### Startup & session
 - [x] Fresh install opens on Login
 - [x] Killing and reopening the app while signed in goes straight to the app (no login flash)
-- [x] With the server stopped, launching while signed in shows "Can't reach Zoe Milano"; **Retry** shows a spinner
+- [x] With the server stopped, launching while signed in shows "Can't reach <Brand.name>"; **Retry** shows a spinner
       and recovers once the server is back
 - [x] Airplane mode at launch shows the error screen within ~15 s, not an endless splash
 - [x] Stay signed in past the access-token lifetime (15 min) and keep using the app: no forced logout
@@ -197,7 +195,7 @@ Manual QA on an Android device or emulator. You need at least two accounts in tw
 - [x] Empty state for a new account
 
 ### Chat
-- [x] Opens at the newest message; own messages right (gold), theirs left; day separators correct
+- [x] Opens at the newest message; own messages right (accent color), theirs left; day separators correct
 - [x] Sending shows the message immediately; the input clears
 - [x] Text typed while a message is still sending is kept
 - [x] Sending with the server down shows "Message not sent" and puts the text back in the input
@@ -280,27 +278,39 @@ src/
     account/            edit company, edit name, invites, security
   api/                  config, HTTP client (token refresh), typed endpoints, server types
   context/              auth state, realtime WebSocket
-  components/ui/        design-system primitives (Screen, GlassCard, GoldButton, Input, ...)
-  constants/            theme tokens, shared industry list
+  components/ui/        placeholder design-system primitives (Screen, Card, PrimaryButton, Input, ...)
+  constants/            placeholder theme tokens, placeholder brand name, shared industry list
   hooks/ utils/         data loading, connections cache, formatting, connection helpers
-assets/images/          Zoe Milano mark + wordmark, app/splash icons
+assets/images/          placeholder app/splash/adaptive icons
 ```
 
 ---
 
-## Design
+## Repainting
 
-All tokens live in `src/constants/theme.ts`, taken from the website's CSS:
+Everything visual is isolated so a derived app only touches these:
 
-| Token | Value |
+| Where | What |
 |---|---|
-| Background | `#0d0d1a` (navy) with a subtle gold glow |
-| Surface / glass | `#16162a` / `rgba(22,22,42,0.55)` |
-| Text | `#f5ecd3` (cream) · muted `#8888aa` |
-| Gold | `#c28e1a` · light `#e0b347` · gradient `#d9b271 → #a38345 → #d1aa69` |
+| `src/constants/theme.ts` | Palette `C` (semantic tokens), `Type`, `Radius`, `Spacing`, and `Scheme` (`'light'` / `'dark'`: status bar, keyboard, navigation theme) |
+| `src/constants/brand.ts` | `Brand.name`, `Brand.tagline` — every user-facing mention of the app name |
+| `src/components/ui/` | Primitives: `Screen`, `ScreenHeader`, `Card`, `Divider`, `PrimaryButton`, `SecondaryButton`, `TextButton`, `Input`, `Avatar`, `Tag`, `Segmented`, `Chip`, `Icon`, loading/empty/error states, `AppRefreshControl` |
+| `src/components/brand.tsx` | `BrandLockup` (placeholder box + text; put the logo here) |
+| `src/app/**` | Per-screen `StyleSheet`s (layout only; all colors come from `C`) |
+| `assets/images/` | Launcher icon, adaptive icon (foreground / background / monochrome), splash, favicon — grey placeholders |
+| `app.json` | `name`, `slug`, `scheme`, `ios.bundleIdentifier`, `android.package` (placeholder `com.example.b2btemplate`), `userInterfaceStyle` (match `Scheme`), native `backgroundColor`s (match `C.bg`) |
+| `package.json` | `name` |
+| `.env` | `EXPO_PUBLIC_APP_KEY` if the new app is a different tenant |
 
-Screens are built from the primitives in `src/components/ui/`. The app is intentionally dark-only — don't
-introduce white or light surfaces.
+Don't hardcode colors in screens; add a token to `C` instead.
+
+### Keeping in sync with b2bzoeapp
+
+`src/api/`, `src/context/`, `src/hooks/`, `src/utils/`, `src/constants/industries.ts` and
+`src/components/form-scroll.tsx` are byte-identical to b2bzoeapp and can be copied over when it changes. Screens
+share all logic but use the renamed primitives (`GoldButton` → `PrimaryButton`, `OutlineButton` →
+`SecondaryButton`, `GlassCard` → `Card`, `GoldRefreshControl` → `AppRefreshControl`, `GoldText` → `Text` with
+`Type.eyebrow`, Tag tone `gold` → `accent`, "Zoe Milano" → `Brand.name`), so port screen changes by hand.
 
 ---
 

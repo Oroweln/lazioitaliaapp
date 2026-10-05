@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -21,7 +20,7 @@ import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/states';
-import { C, Gradients, Radius } from '@/constants/theme';
+import { C, Radius, Scheme } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
 import { useRealtime, useRealtimeStatus } from '@/context/realtime-context';
 import { clockTime } from '@/utils/format';
@@ -278,7 +277,7 @@ export default function ChatScreen() {
             onEndReached={loadOlder}
             onEndReachedThreshold={0.3}
             keyboardShouldPersistTaps="handled"
-            ListFooterComponent={loadingOlder ? <ActivityIndicator color={C.accentLight} style={{ margin: 12 }} /> : null}
+            ListFooterComponent={loadingOlder ? <ActivityIndicator color={C.accent} style={{ margin: 12 }} /> : null}
           />
         )}
         <Composer onSend={send} bottomInset={insets.bottom} />
@@ -305,15 +304,10 @@ const MessageRow = memo(function MessageRow({
       )}
       <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowTheirs]}>
         {mine ? (
-          <LinearGradient
-            colors={Gradients.cta.colors}
-            locations={Gradients.cta.locations}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1.4 }}
-            style={[styles.bubble, styles.bubbleMine]}>
-            <Text style={[styles.text, { color: C.onGold }]}>{message.content}</Text>
-            <Text style={[styles.time, { color: 'rgba(26,19,0,0.6)' }]}>{clockTime(message.created_at)}</Text>
-          </LinearGradient>
+          <View style={[styles.bubble, styles.bubbleMine]}>
+            <Text style={[styles.text, { color: C.onAccent }]}>{message.content}</Text>
+            <Text style={[styles.time, styles.timeMine]}>{clockTime(message.created_at)}</Text>
+          </View>
         ) : (
           <View style={[styles.bubble, styles.bubbleTheirs]}>
             <Text style={styles.text}>{message.content}</Text>
@@ -353,9 +347,9 @@ function Composer({ onSend, bottomInset }: { onSend: (content: string) => Promis
         onChangeText={(t) => setDraft(t.slice(0, 4000))}
         placeholder="Write a message…"
         placeholderTextColor={C.textHint}
-        cursorColor={C.accentLight}
+        cursorColor={C.accent}
         selectionColor={C.accentDim}
-        keyboardAppearance="dark"
+        keyboardAppearance={Scheme}
         multiline
         accessibilityLabel="Message"
         style={styles.input}
@@ -366,15 +360,8 @@ function Composer({ onSend, bottomInset }: { onSend: (content: string) => Promis
         accessibilityRole="button"
         accessibilityLabel="Send message"
         accessibilityState={{ disabled: !canSend, busy: sending }}
-        style={({ pressed }) => [styles.sendWrap, { opacity: !draft.trim() ? 0.45 : pressed ? 0.8 : 1 }]}>
-        <LinearGradient
-          colors={Gradients.cta.colors}
-          locations={Gradients.cta.locations}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.send}>
-          {sending ? <ActivityIndicator color={C.onGold} /> : <Icon name="send" size={20} color={C.onGold} />}
-        </LinearGradient>
+        style={({ pressed }) => [styles.send, { opacity: !draft.trim() ? 0.45 : pressed ? 0.8 : 1 }]}>
+        {sending ? <ActivityIndicator color={C.onAccent} /> : <Icon name="send" size={20} color={C.onAccent} />}
       </Pressable>
     </View>
   );
@@ -385,9 +372,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 14, paddingVertical: 12, flexGrow: 1 },
   dayWrap: { alignItems: 'center', marginVertical: 12 },
   day: {
-    fontSize: 10,
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
+    fontSize: 11,
     color: C.textMuted,
     borderWidth: 1,
     borderColor: C.divider,
@@ -399,33 +384,34 @@ const styles = StyleSheet.create({
   bubbleRow: { marginVertical: 3, flexDirection: 'row' },
   rowMine: { justifyContent: 'flex-end' },
   rowTheirs: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingTop: 9, paddingBottom: 6, borderRadius: 20, gap: 2 },
-  bubbleMine: { borderBottomRightRadius: 6 },
+  bubble: { maxWidth: '80%', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, borderRadius: Radius.lg, gap: 2 },
+  bubbleMine: { backgroundColor: C.accent, borderBottomRightRadius: Radius.sm },
   bubbleTheirs: {
-    backgroundColor: C.glass,
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: 'rgba(216,178,113,0.25)',
-    borderBottomLeftRadius: 6,
+    borderColor: C.border,
+    borderBottomLeftRadius: Radius.sm,
   },
   text: { fontSize: 15, lineHeight: 21, color: C.text },
   time: { fontSize: 10, color: C.textMuted, alignSelf: 'flex-end' },
+  timeMine: { color: C.onAccent, opacity: 0.7 },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
     paddingHorizontal: 12,
     paddingTop: 10,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: C.divider,
-    backgroundColor: 'rgba(13,13,26,0.94)',
+    backgroundColor: C.bg,
   },
   input: {
     flex: 1,
     minHeight: 46,
     maxHeight: 130,
-    borderRadius: 23,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     backgroundColor: C.inputFill,
     color: C.text,
     fontSize: 15,
@@ -433,6 +419,12 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
   },
-  sendWrap: { borderRadius: 23, overflow: 'hidden', borderWidth: 2, borderColor: C.ctaFrame },
-  send: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center' },
+  send: {
+    width: 46,
+    height: 46,
+    borderRadius: Radius.lg,
+    backgroundColor: C.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

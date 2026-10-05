@@ -38,7 +38,7 @@ export function OptionPicker({ label, value, options, placeholder = 'Select', on
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable style={styles.sheet} onPress={() => undefined}>
-            <Text style={[Type.eyebrow, { marginBottom: 8 }]}>{label}</Text>
+            <Text style={[Type.heading, { marginBottom: 8 }]}>{label}</Text>
             <ScrollView style={{ maxHeight: 420 }}>
               {allowClear && (
                 <Pressable style={styles.option} onPress={() => choose(null)}>
@@ -54,7 +54,7 @@ export function OptionPicker({ label, value, options, placeholder = 'Select', on
                     accessibilityState={{ selected: active }}
                     style={({ pressed }) => [styles.option, (pressed || active) && { backgroundColor: C.accentDim }]}
                     onPress={() => choose(o.value)}>
-                    <Text style={[styles.optionText, active && { color: C.accentLight }]}>{o.label}</Text>
+                    <Text style={[styles.optionText, active && styles.optionActive]}>{o.label}</Text>
                     {active && <Icon name="check" size={18} />}
                   </Pressable>
                 );
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   field: {
     minHeight: 50,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     borderRadius: Radius.md,
     paddingHorizontal: 16,
     backgroundColor: C.inputFill,
@@ -80,12 +80,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   value: { fontSize: 15, color: C.text },
-  backdrop: { flex: 1, backgroundColor: 'rgba(5,5,12,0.78)', justifyContent: 'center', padding: 24 },
+  backdrop: { flex: 1, backgroundColor: C.scrim, justifyContent: 'center', padding: 24 },
   sheet: {
-    backgroundColor: C.surface,
+    backgroundColor: C.bg,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     padding: 20,
   },
   option: {
@@ -97,4 +97,5 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   optionText: { fontSize: 15, color: C.text },
+  optionActive: { fontWeight: '600' },
 });

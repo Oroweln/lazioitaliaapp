@@ -1,32 +1,34 @@
 import { MaterialSymbols_300Light } from '@expo-google-fonts/material-symbols/300Light';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { GoldButton } from '@/components/ui/button';
-import { Backdrop } from '@/components/ui/screen';
+import { BrandLockup } from '@/components/brand';
+import { PrimaryButton } from '@/components/ui/button';
 import { ICON_FONT, markIconFontUnavailable } from '@/components/ui/icon';
 import { EmptyState } from '@/components/ui/states';
-import { C } from '@/constants/theme';
+import { Brand } from '@/constants/brand';
+import { C, Scheme } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { RealtimeProvider } from '@/context/realtime-context';
 
 void SplashScreen.preventAutoHideAsync();
 
+const baseNavTheme = Scheme === 'dark' ? DarkTheme : DefaultTheme;
 const navTheme: Theme = {
-  ...DarkTheme,
+  ...baseNavTheme,
   colors: {
-    ...DarkTheme.colors,
-    primary: C.accentLight,
+    ...baseNavTheme.colors,
+    primary: C.accent,
     background: C.bg,
     card: C.bg,
     text: C.text,
     border: C.divider,
-    notification: C.accent,
+    notification: C.danger,
   },
 };
 
@@ -46,13 +48,12 @@ function RootNavigator() {
   if (bootError) {
     return (
       <View style={styles.boot}>
-        <Backdrop />
-        <Image source={require('@/assets/images/zoe-mark.png')} style={styles.mark} />
+        <BrandLockup tagline={false} />
         <EmptyState
           icon="cloud_off"
-          title="Can't reach Zoe Milano"
+          title={`Can't reach ${Brand.name}`}
           message={bootError}
-          action={<GoldButton title="Retry" onPress={retryBoot} icon="refresh" />}
+          action={<PrimaryButton title="Retry" onPress={retryBoot} icon="refresh" />}
         />
       </View>
     );
@@ -62,7 +63,7 @@ function RootNavigator() {
   if (status === 'loading') {
     return (
       <View style={styles.boot}>
-        <ActivityIndicator color={C.accentLight} size="large" />
+        <ActivityIndicator color={C.accent} size="large" />
       </View>
     );
   }
@@ -94,7 +95,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider style={{ backgroundColor: C.bg }}>
       <ThemeProvider value={navTheme}>
-        <StatusBar style="light" />
+        <StatusBar style={Scheme === 'dark' ? 'light' : 'dark'} />
         <AuthProvider>
           <RealtimeProvider>
             <RootNavigator />
@@ -107,5 +108,4 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   boot: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
-  mark: { width: 72, height: 72, resizeMode: 'contain' },
 });

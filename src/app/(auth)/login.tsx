@@ -5,9 +5,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ApiError, errorMessage } from '@/api/client';
 import { BrandLockup } from '@/components/brand';
 import { FormScroll } from '@/components/form-scroll';
-import { GoldButton, TextButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton, TextButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
@@ -48,9 +47,9 @@ export default function LoginScreen() {
     <Screen edges={['top', 'bottom']}>
       <FormScroll contentStyle={styles.content}>
         <BrandLockup />
-        <GlassCard style={styles.card}>
+        <Card style={styles.card}>
           <View style={{ gap: 6 }}>
-            <GoldText style={Type.eyebrow}>Member access</GoldText>
+            <Text style={Type.eyebrow}>Member access</Text>
             <Text style={Type.title}>Welcome back</Text>
           </View>
           <Input
@@ -75,9 +74,9 @@ export default function LoginScreen() {
             returnKeyType="go"
           />
           <ErrorBanner message={error} />
-          <GoldButton title="Sign in" onPress={submit} loading={busy} />
+          <PrimaryButton title="Sign in" onPress={submit} loading={busy} />
           <TextButton title="Forgot your password?" onPress={() => router.push('/forgot-password')} />
-        </GlassCard>
+        </Card>
         <View style={styles.footer}>
           <Text style={styles.footerText}>New to the network?</Text>
           <TextButton title="Request membership →" onPress={() => router.push('/register')} />

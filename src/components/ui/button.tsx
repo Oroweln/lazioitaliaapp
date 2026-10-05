@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,7 +9,7 @@ import {
 } from 'react-native';
 
 import { Icon, type IconName } from '@/components/ui/icon';
-import { C, Gradients, Radius, Type } from '@/constants/theme';
+import { C, Radius, Type } from '@/constants/theme';
 
 type ButtonProps = {
   title: string;
@@ -22,7 +21,7 @@ type ButtonProps = {
   compact?: boolean;
 };
 
-export function GoldButton({ title, onPress, loading, disabled, icon, style, compact }: ButtonProps) {
+export function PrimaryButton({ title, onPress, loading, disabled, icon, style, compact }: ButtonProps) {
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -32,32 +31,24 @@ export function GoldButton({ title, onPress, loading, disabled, icon, style, com
       accessibilityLabel={title}
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
       style={({ pressed }) => [
-        styles.goldFrame,
+        styles.base,
         compact && styles.compact,
-        { opacity: inactive ? 0.55 : pressed ? 0.85 : 1 },
+        { backgroundColor: C.accent, opacity: inactive ? 0.5 : pressed ? 0.8 : 1 },
         style,
       ]}>
-      <LinearGradient
-        colors={Gradients.cta.colors}
-        locations={Gradients.cta.locations}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.goldFill, compact && styles.compactFill]}>
-        <View style={styles.goldHighlight} pointerEvents="none" />
-        {loading ? (
-          <ActivityIndicator color={C.onGold} />
-        ) : (
-          <View style={styles.row}>
-            {icon && <Icon name={icon} size={18} color={C.onGold} />}
-            <Text style={[Type.button, { color: C.onGold }]}>{title}</Text>
-          </View>
-        )}
-      </LinearGradient>
+      {loading ? (
+        <ActivityIndicator color={C.onAccent} />
+      ) : (
+        <View style={styles.row}>
+          {icon && <Icon name={icon} size={18} color={C.onAccent} />}
+          <Text style={[Type.button, { color: C.onAccent }]}>{title}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }
 
-export function OutlineButton({
+export function SecondaryButton({
   title,
   onPress,
   loading,
@@ -65,9 +56,9 @@ export function OutlineButton({
   icon,
   style,
   compact,
-  tone = 'gold',
-}: ButtonProps & { tone?: 'gold' | 'danger' }) {
-  const color = tone === 'danger' ? C.danger : C.accentLight;
+  tone = 'default',
+}: ButtonProps & { tone?: 'default' | 'danger' }) {
+  const color = tone === 'danger' ? C.danger : C.accent;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -77,11 +68,12 @@ export function OutlineButton({
       accessibilityLabel={title}
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
       style={({ pressed }) => [
+        styles.base,
         styles.outline,
-        compact && styles.compactFill,
+        compact && styles.compact,
         {
-          borderColor: tone === 'danger' ? 'rgba(224,82,82,0.55)' : C.accent,
-          backgroundColor: pressed ? (tone === 'danger' ? 'rgba(224,82,82,0.12)' : C.accentDim) : 'transparent',
+          borderColor: color,
+          backgroundColor: pressed ? (tone === 'danger' ? C.dangerDim : C.accentDim) : 'transparent',
           opacity: inactive ? 0.5 : 1,
         },
         style,
@@ -101,48 +93,21 @@ export function OutlineButton({
 export function TextButton({ title, onPress, style, disabled }: ButtonProps) {
   return (
     <Pressable onPress={onPress} disabled={disabled} hitSlop={8} style={style} accessibilityRole="button">
-      {({ pressed }) => (
-        <Text style={[styles.textButton, { color: pressed ? C.accentLight : C.textDim }]}>{title}</Text>
-      )}
+      {({ pressed }) => <Text style={[styles.textButton, { color: pressed ? C.text : C.textDim }]}>{title}</Text>}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  goldFrame: {
-    borderRadius: Radius.pill,
-    borderWidth: 2,
-    borderColor: C.ctaFrame,
-    overflow: 'hidden',
-    shadowColor: C.accent,
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  goldFill: {
-    minHeight: 50,
-    paddingHorizontal: 28,
+  base: {
+    minHeight: 48,
+    paddingHorizontal: 20,
+    borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  goldHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.35)',
-  },
-  compact: { elevation: 2 },
-  compactFill: { minHeight: 38, paddingHorizontal: 18 },
-  outline: {
-    minHeight: 50,
-    paddingHorizontal: 24,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  outline: { borderWidth: 1 },
+  compact: { minHeight: 38, paddingHorizontal: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  textButton: { fontSize: 14, fontWeight: '300', textAlign: 'center' },
+  textButton: { fontSize: 14, textAlign: 'center' },
 });

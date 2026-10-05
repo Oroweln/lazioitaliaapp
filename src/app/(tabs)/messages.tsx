@@ -9,8 +9,8 @@ import { Avatar } from '@/components/ui/avatar';
 import { Divider } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Screen } from '@/components/ui/screen';
-import { OutlineButton } from '@/components/ui/button';
-import { EmptyState, ErrorState, GoldRefreshControl, Loading } from '@/components/ui/states';
+import { SecondaryButton } from '@/components/ui/button';
+import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
 import { C, MaxContentWidth } from '@/constants/theme';
 import { useRealtime } from '@/context/realtime-context';
 import { relativeTime } from '@/utils/format';
@@ -173,7 +173,7 @@ export default function MessagesScreen() {
           unread ? `, ${item.unread_count} unread` : ''
         }`}
         android_ripple={{ color: C.accentDim }}
-        style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.glass }]}
+        style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.surfacePressed }]}
         onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id, name } })}>
         <Avatar name={item.other_business_name ?? name} size={52} logoUrl={item.other_business_logo_url} />
         <View style={styles.body}>
@@ -181,7 +181,7 @@ export default function MessagesScreen() {
             <Text style={[styles.name, unread && styles.nameUnread]} numberOfLines={1}>
               {name}
             </Text>
-            <Text style={[styles.time, unread && { color: C.accentLight }]}>{relativeTime(item.last_message_at)}</Text>
+            <Text style={[styles.time, unread && { color: C.text }]}>{relativeTime(item.last_message_at)}</Text>
           </View>
           {item.other_business_name ? (
             <Text style={styles.company} numberOfLines={1}>
@@ -219,15 +219,15 @@ export default function MessagesScreen() {
           contentContainerStyle={styles.list}
           onEndReached={loadMore}
           onEndReachedThreshold={0.6}
-          refreshControl={<GoldRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator color={C.accentLight} style={{ margin: 16 }} />
+              <ActivityIndicator color={C.accent} style={{ margin: 16 }} />
             ) : hasMore && items.length > 0 ? (
               // onEndReached can fail to fire on some Android layouts; this keeps paging
               // reachable by tap, and makes "is there more?" visible instead of silent.
               <View style={styles.footer}>
-                <OutlineButton title="Load older conversations" icon="refresh" compact onPress={loadMore} />
+                <SecondaryButton title="Load older conversations" icon="refresh" compact onPress={loadMore} />
               </View>
             ) : null
           }
@@ -252,17 +252,17 @@ const styles = StyleSheet.create({
   topLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   name: { flex: 1, fontSize: 16, color: C.text, fontWeight: '400' },
   nameUnread: { fontWeight: '600' },
-  company: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.accentLight },
+  company: { fontSize: 12, color: C.textDim },
   time: { fontSize: 12, color: C.textMuted },
-  preview: { flex: 1, fontSize: 14, color: C.textMuted, fontWeight: '300' },
+  preview: { flex: 1, fontSize: 14, color: C.textMuted },
   badge: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
     paddingHorizontal: 6,
-    backgroundColor: C.accentLight,
+    backgroundColor: C.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: { fontSize: 11, fontWeight: '700', color: C.onGold },
+  badgeText: { fontSize: 11, fontWeight: '700', color: C.onAccent },
 });

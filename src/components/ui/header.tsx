@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { GoldText } from '@/components/ui/gold-text';
 import { Icon } from '@/components/ui/icon';
 import { C, Type } from '@/constants/theme';
 
@@ -39,8 +38,8 @@ export function ScreenHeader({ title, eyebrow, back, right, compact }: Props) {
   }
   return (
     <View style={styles.large}>
-      <View style={{ flex: 1, gap: 6 }}>
-        {eyebrow && <GoldText style={Type.eyebrow}>{eyebrow}</GoldText>}
+      <View style={{ flex: 1, gap: 4 }}>
+        {eyebrow && <Text style={Type.eyebrow}>{eyebrow}</Text>}
         <Text style={Type.display} numberOfLines={1}>
           {title}
         </Text>
@@ -56,7 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.divider,
   },
   backBtn: {
@@ -65,11 +64,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(194,142,26,0.25)',
-    backgroundColor: C.glass,
   },
-  barTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '400', color: C.text, marginHorizontal: 8 },
+  barTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600', color: C.text, marginHorizontal: 8 },
   right: { minWidth: 40, alignItems: 'flex-end' },
   large: {
     flexDirection: 'row',

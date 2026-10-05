@@ -5,10 +5,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ApiError, errorMessage } from '@/api/client';
 import { ConnectionsApi, Discover } from '@/api/endpoints';
-import { GoldButton, OutlineButton } from '@/components/ui/button';
+import { PrimaryButton, SecondaryButton } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { Divider, GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { Divider, Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
@@ -105,31 +104,31 @@ export default function BusinessScreen() {
           <View style={styles.footer}>
             {!connections.data ? (
               connections.error ? (
-                <OutlineButton title="Retry" icon="refresh" onPress={() => void connections.reload().catch(() => undefined)} />
+                <SecondaryButton title="Retry" icon="refresh" onPress={() => void connections.reload().catch(() => undefined)} />
               ) : (
-                <OutlineButton title="Checking connection…" disabled />
+                <SecondaryButton title="Checking connection…" disabled />
               )
             ) : relation?.status === 'approved' ? (
               relation.contactUserId != null ? (
-                <GoldButton
+                <PrimaryButton
                   title={`Message ${business.name}`}
                   icon="chat"
                   loading={openingFor === relation.contactUserId}
                   onPress={() => openChat(relation.contactUserId!, business.name)}
                 />
               ) : (
-                <OutlineButton title="No contact available" disabled />
+                <SecondaryButton title="No contact available" disabled />
               )
             ) : relation?.status === 'pending_admin' ? (
-              <OutlineButton
+              <SecondaryButton
                 title={relation.direction === 'sent' ? 'Request sent' : 'Respond in Connections'}
                 icon="hourglass_top"
                 disabled
               />
             ) : relation?.status === 'rejected' ? (
-              <OutlineButton title="Request declined" disabled />
+              <SecondaryButton title="Request declined" disabled />
             ) : (
-              <GoldButton title={`Connect with ${business.name}`} icon="handshake" onPress={() => setComposerOpen(true)} />
+              <PrimaryButton title={`Connect with ${business.name}`} icon="handshake" onPress={() => setComposerOpen(true)} />
             )}
           </View>
 
@@ -156,10 +155,10 @@ export default function BusinessScreen() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <GlassCard style={{ gap: 12 }}>
-      <GoldText style={Type.eyebrow}>{title}</GoldText>
+    <Card style={{ gap: 12 }}>
+      <Text style={Type.eyebrow}>{title}</Text>
       {children}
-    </GlassCard>
+    </Card>
   );
 }
 
@@ -243,7 +242,7 @@ function ConnectComposer({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <SafeAreaView edges={['bottom']} style={styles.sheetWrap}>
           <Pressable style={styles.sheet} onPress={() => undefined}>
-            <GoldText style={Type.eyebrow}>Connection request</GoldText>
+            <Text style={Type.eyebrow}>Connection request</Text>
             <Text style={Type.heading}>Introduce yourself to {businessName}</Text>
             <Input
               value={message}
@@ -253,8 +252,8 @@ function ConnectComposer({
             />
             <Text style={styles.counter}>{message.length}/500</Text>
             <ErrorBanner message={error} />
-            <GoldButton title="Send request" onPress={send} loading={busy} icon="send" />
-            <OutlineButton title="Cancel" onPress={onClose} />
+            <PrimaryButton title="Send request" onPress={send} loading={busy} icon="send" />
+            <SecondaryButton title="Cancel" onPress={onClose} />
           </Pressable>
         </SafeAreaView>
       </Pressable>
@@ -266,23 +265,23 @@ function ConnectComposer({
 const styles = StyleSheet.create({
   content: { padding: 20, gap: 16, paddingBottom: 32, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   hero: { alignItems: 'center', gap: 12, paddingVertical: 12 },
-  website: { color: C.accentLight, fontSize: 14, letterSpacing: 0.4 },
+  website: { color: C.accent, fontSize: 14, textDecorationLine: 'underline' },
   tags: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
-  body: { color: C.textDim, fontSize: 15, lineHeight: 24, fontWeight: '300' },
+  body: { color: C.textDim, fontSize: 15, lineHeight: 24 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   detailLabel: { color: C.textMuted, fontSize: 13, width: 104 },
   detailValue: { flex: 1, color: C.text, fontSize: 14, textAlign: 'right' },
-  detailLink: { color: C.accentLight },
+  detailLink: { color: C.accent, textDecorationLine: 'underline' },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: C.divider,
-    backgroundColor: 'rgba(13,13,26,0.92)',
+    backgroundColor: C.bg,
   },
-  backdrop: { flex: 1, backgroundColor: 'rgba(5,5,12,0.78)', justifyContent: 'flex-end' },
-  sheetWrap: { backgroundColor: C.surface, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg },
+  backdrop: { flex: 1, backgroundColor: C.scrim, justifyContent: 'flex-end' },
+  sheetWrap: { backgroundColor: C.bg, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg },
   sheet: {
     padding: 22,
     gap: 14,
@@ -290,7 +289,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: Radius.lg,
     borderWidth: 1,
     borderBottomWidth: 0,
-    borderColor: C.borderGold,
+    borderColor: C.border,
   },
   counter: { alignSelf: 'flex-end', fontSize: 11, color: C.textMuted, marginTop: -8 },
 });

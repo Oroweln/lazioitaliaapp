@@ -1,7 +1,7 @@
 import { useState, type Ref } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-import { C, Radius, Type } from '@/constants/theme';
+import { C, Radius, Scheme, Type } from '@/constants/theme';
 
 type Props = TextInputProps & {
   label?: string;
@@ -17,8 +17,8 @@ export function Input({ label, error, style, multiline, onFocus, onBlur, ...rest
       <TextInput
         placeholderTextColor={C.textHint}
         selectionColor={C.accentDim}
-        cursorColor={C.accentLight}
-        keyboardAppearance="dark"
+        cursorColor={C.accent}
+        keyboardAppearance={Scheme}
         multiline={multiline}
         onFocus={(e) => {
           setFocused(true);
@@ -31,7 +31,7 @@ export function Input({ label, error, style, multiline, onFocus, onBlur, ...rest
         style={[
           styles.input,
           multiline && styles.multiline,
-          { borderColor: error ? C.danger : focused ? C.accent : C.borderGold },
+          { borderColor: error ? C.danger : focused ? C.accent : C.border },
           style,
         ]}
         {...rest}

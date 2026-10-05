@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, Text, View, type RefreshControlProps } from 'react-native';
 
-import { OutlineButton } from '@/components/ui/button';
+import { SecondaryButton } from '@/components/ui/button';
 import { Icon, type IconName } from '@/components/ui/icon';
-import { C, Type } from '@/constants/theme';
+import { C, Radius, Type } from '@/constants/theme';
 
 export function Loading() {
   return (
     <View style={styles.center}>
-      <ActivityIndicator color={C.accentLight} size="large" />
+      <ActivityIndicator color={C.accent} size="large" />
     </View>
   );
 }
@@ -21,7 +21,7 @@ export function EmptyState({ icon = 'hourglass_empty', title, message, action }:
       <View style={styles.iconRing}>
         <Icon name={icon} size={28} />
       </View>
-      <Text style={[Type.heading, { textAlign: 'center', fontWeight: '300' }]}>{title}</Text>
+      <Text style={[Type.heading, { textAlign: 'center' }]}>{title}</Text>
       {message && <Text style={[Type.bodyDim, { textAlign: 'center' }]}>{message}</Text>}
       {action}
     </View>
@@ -34,7 +34,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       icon="error"
       title="Something went wrong"
       message={message}
-      action={onRetry && <OutlineButton title="Try again" onPress={onRetry} compact icon="refresh" />}
+      action={onRetry && <SecondaryButton title="Try again" onPress={onRetry} compact icon="refresh" />}
     />
   );
 }
@@ -49,12 +49,12 @@ export function ErrorBanner({ message }: { message?: string | null }) {
   );
 }
 
-export function GoldRefreshControl(props: RefreshControlProps) {
+export function AppRefreshControl(props: RefreshControlProps) {
   return (
     <RefreshControl
-      colors={[C.accentLight]}
+      colors={[C.accent]}
       progressBackgroundColor={C.surface}
-      tintColor={C.accentLight}
+      tintColor={C.accent}
       {...props}
     />
   );
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: C.borderGold,
-    backgroundColor: C.glass,
+    borderColor: C.border,
+    backgroundColor: C.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(224,82,82,0.4)',
-    backgroundColor: 'rgba(224,82,82,0.1)',
-    borderRadius: 14,
+    borderColor: C.danger,
+    backgroundColor: C.dangerDim,
+    borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  bannerText: { flex: 1, color: '#f2a5a5', fontSize: 13, lineHeight: 18 },
+  bannerText: { flex: 1, color: C.danger, fontSize: 13, lineHeight: 18 },
 });
