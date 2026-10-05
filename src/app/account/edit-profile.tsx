@@ -5,8 +5,8 @@ import { Text } from 'react-native';
 import { errorMessage } from '@/api/client';
 import { Account } from '@/api/endpoints';
 import { FormScroll } from '@/components/form-scroll';
-import { GoldButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
+import { PrimaryButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
@@ -38,12 +38,12 @@ export default function EditProfileScreen() {
     <Screen edges={['top', 'bottom']}>
       <ScreenHeader title="Your name" back />
       <FormScroll>
-        <GlassCard style={{ gap: 16 }}>
+        <Card style={{ gap: 16 }}>
           <Text style={Type.bodyDim}>Your name is shown to people you chat with, alongside your company.</Text>
           <Input label="Full name" value={name} onChangeText={setName} placeholder="Name Surname" autoComplete="name" />
           <ErrorBanner message={error} />
-          <GoldButton title="Save" onPress={save} loading={busy} />
-        </GlassCard>
+          <PrimaryButton title="Save" onPress={save} loading={busy} />
+        </Card>
       </FormScroll>
     </Screen>
   );

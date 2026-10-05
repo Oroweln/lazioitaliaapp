@@ -5,13 +5,13 @@ import { Alert, SectionList, StyleSheet, Text, View } from 'react-native';
 import { errorMessage } from '@/api/client';
 import { ConnectionsApi } from '@/api/endpoints';
 import type { ConnectionStatus, ReceivedConnection, SentConnection } from '@/api/types';
-import { GoldButton, OutlineButton } from '@/components/ui/button';
+import { PrimaryButton, SecondaryButton } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { GlassCard } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
-import { EmptyState, ErrorState, GoldRefreshControl, Loading } from '@/components/ui/states';
+import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
 import { Tag, type TagTone } from '@/components/ui/tag';
 import { C, MaxContentWidth, Type } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
@@ -45,7 +45,7 @@ function fromSent(s: SentConnection): Row {
   return {
     key: `s${s.id}`,
     name: s.business_name,
-    subtitle: [s.business_industry, s.business_location].filter(Boolean).join('  ·  '),
+    subtitle: [s.business_industry, s.business_location].filter(Boolean).join(' · '),
     message: s.message,
     status: s.status,
     createdAt: s.created_at,
@@ -61,7 +61,7 @@ function fromReceived(r: ReceivedConnection): Row {
   return {
     key: `r${r.id}`,
     name: r.requester_name ?? 'Former member',
-    subtitle: [r.requester_industry, r.requester_location].filter(Boolean).join('  ·  '),
+    subtitle: [r.requester_industry, r.requester_location].filter(Boolean).join(' · '),
     message: r.message,
     status: r.status,
     createdAt: r.created_at,
@@ -131,8 +131,7 @@ export default function ConnectionsScreen() {
         : [];
 
   const renderRow = ({ item: row }: { item: Row }) => (
-    <GlassCard
-      radius={20}
+    <Card
       style={styles.card}
       onPress={() => router.push({ pathname: '/business/[id]', params: { id: row.businessId, name: row.name } })}>
       <View style={styles.cardTop}>
@@ -159,14 +158,14 @@ export default function ConnectionsScreen() {
         row.status === 'pending_admin' &&
         (canRespond ? (
           <View style={styles.actions}>
-            <OutlineButton
+            <SecondaryButton
               title="Decline"
               compact
               style={{ flex: 1 }}
               disabled={responding === row.requestId}
               onPress={() => confirmDecline(row)}
             />
-            <GoldButton
+            <PrimaryButton
               title="Accept"
               compact
               icon="check"
@@ -180,7 +179,7 @@ export default function ConnectionsScreen() {
         ))}
 
       {tab === 'connected' && (
-        <OutlineButton
+        <SecondaryButton
           title="Message"
           icon="chat"
           compact
@@ -189,7 +188,7 @@ export default function ConnectionsScreen() {
           onPress={() => row.contactUserId != null && openChat(row.contactUserId, row.name)}
         />
       )}
-    </GlassCard>
+    </Card>
   );
 
   return (
@@ -220,7 +219,7 @@ export default function ConnectionsScreen() {
           stickySectionHeadersEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           contentContainerStyle={styles.list}
-          refreshControl={<GoldRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
           ListEmptyComponent={
             tab === 'pending' ? (
               <EmptyState
@@ -251,7 +250,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, color: C.text },
   subtitle: { fontSize: 12, color: C.textMuted },
   time: { fontSize: 11, color: C.textMuted },
-  message: { fontSize: 13, color: C.textDim, fontStyle: 'italic', lineHeight: 20 },
+  message: { fontSize: 13, color: C.textDim, lineHeight: 20 },
   actions: { flexDirection: 'row', gap: 10 },
   hint: { fontSize: 12, color: C.textMuted },
 });

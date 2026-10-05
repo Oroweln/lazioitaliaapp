@@ -5,14 +5,14 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { ApiError, errorMessage } from '@/api/client';
 import { FormScroll } from '@/components/form-scroll';
 import { OptionPicker } from '@/components/option-picker';
-import { GoldButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { ErrorBanner } from '@/components/ui/states';
+import { Brand } from '@/constants/brand';
 import { INDUSTRIES } from '@/constants/industries';
 import { C, Type } from '@/constants/theme';
 import { REGISTERED_LOGIN_FAILED, useAuth } from '@/context/auth-context';
@@ -82,10 +82,10 @@ export default function RegisterScreen() {
       <ScreenHeader title="Request membership" back />
       <FormScroll>
         <View style={{ gap: 6 }}>
-          <GoldText style={Type.eyebrow}>Join the network</GoldText>
+          <Text style={Type.eyebrow}>Join the network</Text>
           <Text style={Type.title}>Create your account</Text>
           <Text style={Type.bodyDim}>
-            Every member is reviewed by Zoe Milano before gaining access to the network.
+            Every member is reviewed by {Brand.name} before gaining access to the network.
           </Text>
         </View>
 
@@ -98,8 +98,8 @@ export default function RegisterScreen() {
           ]}
         />
 
-        <GlassCard style={styles.card}>
-          <GoldText style={Type.eyebrow}>About you</GoldText>
+        <Card style={styles.card}>
+          <Text style={Type.eyebrow}>About you</Text>
           <Input label="Full name" value={fullName} onChangeText={setFullName} placeholder="Name Surname" autoComplete="name" />
           <Input
             label="Email"
@@ -118,11 +118,11 @@ export default function RegisterScreen() {
             secureTextEntry
             autoComplete="new-password"
           />
-        </GlassCard>
+        </Card>
 
         {mode === 'company' ? (
-          <GlassCard style={styles.card}>
-            <GoldText style={Type.eyebrow}>Your company</GoldText>
+          <Card style={styles.card}>
+            <Text style={Type.eyebrow}>Your company</Text>
             <Input label="Company name" value={companyName} onChangeText={setCompanyName} placeholder="Company S.r.l." />
             <OptionPicker
               label="Industry"
@@ -132,10 +132,10 @@ export default function RegisterScreen() {
               onChange={setIndustry}
             />
             <Input label="Location" value={location} onChangeText={setLocation} placeholder="Milan, Italy" />
-          </GlassCard>
+          </Card>
         ) : (
-          <GlassCard style={styles.card}>
-            <GoldText style={Type.eyebrow}>Join your company</GoldText>
+          <Card style={styles.card}>
+            <Text style={Type.eyebrow}>Join your company</Text>
             <Text style={styles.hint}>Ask your company owner or admin for an invite code from their Profile.</Text>
             <Input
               label="Invite code"
@@ -145,11 +145,11 @@ export default function RegisterScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-          </GlassCard>
+          </Card>
         )}
 
         <ErrorBanner message={error} />
-        <GoldButton title="Submit request" onPress={submit} loading={busy} />
+        <PrimaryButton title="Submit request" onPress={submit} loading={busy} />
       </FormScroll>
     </Screen>
   );

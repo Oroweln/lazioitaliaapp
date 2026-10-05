@@ -56,7 +56,7 @@ type Props = {
   style?: StyleProp<TextStyle>;
 };
 
-export function Icon({ name, size = 22, color = C.accentLight, style }: Props) {
+export function Icon({ name, size = 22, color = C.accent, style }: Props) {
   if (fontUnavailable) return <View style={{ width: size, height: size }} />;
   return (
     <Text

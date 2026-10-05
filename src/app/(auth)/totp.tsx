@@ -4,9 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { errorMessage } from '@/api/client';
 import { BrandLockup } from '@/components/brand';
 import { FormScroll } from '@/components/form-scroll';
-import { GoldButton, TextButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton, TextButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
@@ -43,9 +42,9 @@ export default function TotpScreen() {
     <Screen edges={['top', 'bottom']}>
       <FormScroll contentStyle={styles.content}>
         <BrandLockup tagline={false} />
-        <GlassCard style={styles.card}>
+        <Card style={styles.card}>
           <View style={{ gap: 6 }}>
-            <GoldText style={Type.eyebrow}>Two-factor authentication</GoldText>
+            <Text style={Type.eyebrow}>Two-factor authentication</Text>
             <Text style={Type.title}>Verification code</Text>
             <Text style={Type.bodyDim}>Open your authenticator app and enter the current code.</Text>
           </View>
@@ -62,8 +61,8 @@ export default function TotpScreen() {
             onSubmitEditing={submit}
           />
           <ErrorBanner message={error} />
-          <GoldButton title="Verify" onPress={submit} loading={busy} />
-        </GlassCard>
+          <PrimaryButton title="Verify" onPress={submit} loading={busy} />
+        </Card>
         <TextButton title="← Back to sign in" onPress={cancelTotp} />
       </FormScroll>
     </Screen>

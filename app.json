@@ -1,26 +1,26 @@
 {
   "expo": {
-    "name": "zoe-app",
-    "slug": "zoe-app",
+    "name": "B2B Template",
+    "slug": "b2b-template",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "zoeapp",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0d0d1a",
+    "scheme": "b2btemplate",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#ffffff",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.milan.ninkovic.zoeapp"
+      "bundleIdentifier": "com.example.b2btemplate"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0d0d1a",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.milan.ninkovic.zoeapp"
+      "package": "com.example.b2btemplate"
     },
     "web": {
       "output": "static",
@@ -31,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0d0d1a",
+          "backgroundColor": "#ffffff",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }

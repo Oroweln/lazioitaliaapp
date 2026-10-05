@@ -6,11 +6,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`zoe-app` — the Android-first Expo (SDK 57, expo-router) client for the Zoe Milano B2B network. It is the
-frontend of the Rust backend two directories up (`../../`, see that repo's `CLAUDE.md` for the server side):
-real login/registration, Discover, company connections and live chat. The visual identity mirrors the Zoe
-Milano website (github.com/Oroweln/zoemilanocomv2): **dark-only** navy + champagne gold. There is no light
-theme and no white surface anywhere — keep it that way.
+**Design-neutral template** of `b2bzoeapp` (the Zoe Milano B2B app): an Android-first Expo (SDK 57,
+expo-router) client for the b2bserver Rust backend two directories up (`../../`, see that repo's `CLAUDE.md`
+for the server side) — real login/registration, Discover, company connections and live chat. Functionality is
+identical to `b2bzoeapp`; only the look was stripped to a neutral grayscale placeholder so a derived app can be
+repainted with a completely different design. Don't add a real design here — do it in the derived app.
+
+### Keeping in sync with `b2bzoeapp`
+
+These are byte-identical to `b2bzoeapp` and can be copied across as-is when the original changes:
+`src/api/`, `src/context/`, `src/hooks/`, `src/utils/`, `src/constants/industries.ts`,
+`src/components/form-scroll.tsx`. Screens (`src/app/`) and the other components share all logic with the
+original but differ in names/styles (`GoldButton` → `PrimaryButton`, `OutlineButton` → `SecondaryButton`,
+`GlassCard` → `Card`, `GoldRefreshControl` → `AppRefreshControl`, `GoldText` → `<Text style={Type.eyebrow}>`,
+Tag tone `gold` → `accent`, `Zoe Milano` → `Brand.name`), so port changes there by hand.
+
+### Repainting a derived app
+
+1. `src/constants/theme.ts` — palette `C`, `Type`, `Radius`, `Spacing`, and `Scheme` (`'light' | 'dark'`; drives
+   status bar, keyboard appearance and navigation theme).
+2. `src/constants/brand.ts` — `Brand.name` / `Brand.tagline`, used in every user-facing mention of the app.
+3. `src/components/ui/*` and `src/components/brand.tsx` (`BrandLockup` is a box + text placeholder — put the
+   logo there), then per-screen `StyleSheet`s in `src/app/`.
+4. `assets/images/` — icon, adaptive icon (foreground/background/monochrome), splash, favicon are grey
+   placeholders.
+5. `app.json` — `name`, `slug`, `scheme`, `ios.bundleIdentifier`, `android.package` (placeholders
+   `com.example.b2btemplate`), `userInterfaceStyle` (must match `Scheme`), and the native
+   root/splash/adaptive-icon `backgroundColor`s (must match `C.bg`). Also `name` in `package.json`.
+6. `.env` — `EXPO_PUBLIC_APP_KEY` if the derived app is a different tenant on the server.
 
 ## Commands
 
@@ -105,20 +128,18 @@ it. The chat thread pages backwards until the newest page overlaps what's on scr
 
 ### Theme (`src/constants/theme.ts`, `src/components/ui/`)
 
-Single palette `C` (values from the website's `app.css`: bg `#0d0d1a`, cream text `#f5ecd3`, gold
-`#c28e1a`/`#e0b347`), `Gradients` (gold text, CTA, skybox backdrop), `Radius`, `Type` presets. Build screens
-from the primitives: `Screen` (navy backdrop with the gold skybox glow + safe area), `ScreenHeader`,
-`GlassCard`/`Divider`, `GoldButton`/`OutlineButton`/`TextButton`, `Input`, `GoldText` (masked gradient text —
-keep to headings/eyebrows, not list rows), `Avatar`, `Tag`, `Segmented`/`Chip`, `Icon`, and `states.tsx`
-(loading/empty/error, gold `RefreshControl`). `Icon` renders Material Symbols (300 Light) as text from a font the
-root layout loads before hiding the splash (it is also embedded natively via the `expo-font` plugin in
-`app.json`; the file name must match `ICON_FONT`); to use a new icon add its codepoint to `GLYPHS` in `icon.tsx`.
-Every new `TextInput` needs `keyboardAppearance="dark"` and themed placeholder/cursor colors (the `Input` primitive already does this); every navigator needs `contentStyle`/`sceneStyle`
-`backgroundColor: C.bg` so transitions never flash light. `app.json` sets `userInterfaceStyle: "dark"` and the
-native root/splash/adaptive-icon backgrounds to navy.
-
-Brand assets: `assets/images/zoe-mark.png` (gold Z) and `zoe-wordmark.png`, taken from the website repo;
-launcher/splash icons are generated from the mark.
+Placeholder palette `C` (semantic tokens: `bg`, `surface`, `surfacePressed`, `inputFill`, `text`/`textDim`/
+`textHint`/`textMuted`, `accent`/`onAccent`/`accentDim`, `border`, `divider`, `scrim`, `danger`/`dangerDim`,
+`success`, `warning`), `Scheme`, `Radius`, `Spacing`, `Type` presets. Never hardcode colors in screens — always go
+through `C`, so a repaint touches only the theme. Build screens from the primitives: `Screen` (background + safe
+area), `ScreenHeader`, `Card`/`Divider`, `PrimaryButton`/`SecondaryButton`/`TextButton`, `Input`, `Avatar`, `Tag`,
+`Segmented`/`Chip`, `Icon`, and `states.tsx` (loading/empty/error, `AppRefreshControl`). `Icon` renders Material
+Symbols (300 Light) as text from a font the root layout loads before hiding the splash (it is also embedded
+natively via the `expo-font` plugin in `app.json`; the file name must match `ICON_FONT`); to use a new icon add
+its codepoint to `GLYPHS` in `icon.tsx`. A derived app can swap the icon set by reimplementing `Icon` behind the
+same `IconName` keys. Every new `TextInput` needs `keyboardAppearance={Scheme}` and themed placeholder/cursor
+colors (the `Input` primitive already does this); every navigator needs `contentStyle`/`sceneStyle`
+`backgroundColor: C.bg` so transitions never flash a different color.
 
 ### Conventions
 

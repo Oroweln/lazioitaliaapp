@@ -1,8 +1,7 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { C, Gradients, Radius } from '@/constants/theme';
+import { C, Radius } from '@/constants/theme';
 
 type CardProps = {
   children: ReactNode;
@@ -11,7 +10,7 @@ type CardProps = {
   radius?: number;
 };
 
-export function GlassCard({ children, onPress, style, radius = Radius.lg }: CardProps) {
+export function Card({ children, onPress, style, radius = Radius.lg }: CardProps) {
   const base = [styles.card, { borderRadius: radius }];
   if (!onPress) return <View style={[base, style]}>{children}</View>;
   return (
@@ -26,25 +25,17 @@ export function GlassCard({ children, onPress, style, radius = Radius.lg }: Card
 }
 
 export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
-  return (
-    <LinearGradient
-      colors={Gradients.hairline.colors}
-      locations={Gradients.hairline.locations}
-      start={{ x: 0, y: 0.5 }}
-      end={{ x: 1, y: 0.5 }}
-      style={[styles.divider, style]}
-    />
-  );
+  return <View style={[styles.divider, style]} />;
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: C.glass,
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: C.borderGold,
-    padding: 18,
+    borderColor: C.border,
+    padding: 16,
     overflow: 'hidden',
   },
-  pressed: { backgroundColor: C.surfaceHover, borderColor: 'rgba(216,178,113,0.55)' },
-  divider: { height: 1, alignSelf: 'stretch' },
+  pressed: { backgroundColor: C.surfacePressed },
+  divider: { height: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: C.divider },
 });

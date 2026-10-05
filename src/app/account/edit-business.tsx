@@ -9,9 +9,8 @@ import type { Business, BusinessSize, BusinessUpdate } from '@/api/types';
 import { FormScroll } from '@/components/form-scroll';
 import { OptionPicker } from '@/components/option-picker';
 import { Avatar } from '@/components/ui/avatar';
-import { GoldButton, OutlineButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton, SecondaryButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
@@ -207,15 +206,15 @@ function BusinessForm({ business }: { business: Business }) {
 
   return (
     <FormScroll>
-      <GlassCard style={{ gap: 16 }}>
-        <GoldText style={Type.eyebrow}>Identity</GoldText>
+      <Card style={{ gap: 16 }}>
+        <Text style={Type.eyebrow}>Identity</Text>
         <View style={styles.logoRow}>
           <Avatar name={text.name || business.name} size={72} logoUrl={logoUrl} />
           <View style={styles.logoActions}>
             <Text style={Type.label}>Company logo</Text>
             <Text style={Type.small}>PNG, JPEG or WEBP, up to 5 MB. Shown as a circle.</Text>
             <View style={styles.logoButtons}>
-              <OutlineButton
+              <SecondaryButton
                 title={logoUrl ? 'Change' : 'Add logo'}
                 icon="image"
                 compact
@@ -223,7 +222,7 @@ function BusinessForm({ business }: { business: Business }) {
                 onPress={pickLogo}
               />
               {logoUrl ? (
-                <OutlineButton title="Remove" tone="danger" compact disabled={logoBusy} onPress={removeLogo} />
+                <SecondaryButton title="Remove" tone="danger" compact disabled={logoBusy} onPress={removeLogo} />
               ) : null}
             </View>
           </View>
@@ -248,9 +247,9 @@ function BusinessForm({ business }: { business: Business }) {
           keyboardType="url"
           error={fieldErrors.website}
         />
-      </GlassCard>
-      <GlassCard style={{ gap: 16 }}>
-        <GoldText style={Type.eyebrow}>Presentation</GoldText>
+      </Card>
+      <Card style={{ gap: 16 }}>
+        <Text style={Type.eyebrow}>Presentation</Text>
         <Input
           label="About"
           value={text.description}
@@ -268,9 +267,9 @@ function BusinessForm({ business }: { business: Business }) {
           error={fieldErrors.looking_for}
         />
         <Text style={Type.small}>These details appear on your company page in Discover.</Text>
-      </GlassCard>
+      </Card>
       <ErrorBanner message={error} />
-      <GoldButton title="Save changes" onPress={save} loading={busy} />
+      <PrimaryButton title="Save changes" onPress={save} loading={busy} />
     </FormScroll>
   );
 }

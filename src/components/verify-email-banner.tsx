@@ -3,8 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { errorMessage } from '@/api/client';
 import { Auth } from '@/api/endpoints';
-import { OutlineButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
+import { SecondaryButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { ErrorBanner } from '@/components/ui/states';
 import { C, Type } from '@/constants/theme';
@@ -44,7 +44,7 @@ export function VerifyEmailBanner() {
   };
 
   return (
-    <GlassCard style={styles.card}>
+    <Card style={styles.card}>
       <View style={styles.header}>
         <Icon name="mail" size={20} />
         <Text style={Type.heading}>Confirm your email</Text>
@@ -55,7 +55,7 @@ export function VerifyEmailBanner() {
       {notice ? <Text style={styles.notice}>{notice}</Text> : null}
       <ErrorBanner message={error} />
       <View style={styles.actions}>
-        <OutlineButton
+        <SecondaryButton
           title="Resend link"
           icon="refresh"
           compact
@@ -64,7 +64,7 @@ export function VerifyEmailBanner() {
           disabled={busy === 'check'}
           onPress={() => run('resend')}
         />
-        <OutlineButton
+        <SecondaryButton
           title="I've confirmed"
           icon="check"
           compact
@@ -74,13 +74,13 @@ export function VerifyEmailBanner() {
           onPress={() => run('check')}
         />
       </View>
-    </GlassCard>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 12, borderColor: 'rgba(212,160,23,0.4)' },
+  card: { gap: 12, borderColor: C.warning },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  notice: { color: C.accentLight, fontSize: 13, lineHeight: 19 },
+  notice: { color: C.text, fontSize: 13, lineHeight: 19 },
   actions: { flexDirection: 'row', gap: 10 },
 });

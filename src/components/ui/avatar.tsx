@@ -1,10 +1,9 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { mediaUrl } from '@/api/config';
-import { C, Gradients } from '@/constants/theme';
+import { C } from '@/constants/theme';
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -25,31 +24,31 @@ export function Avatar({ name, size = 48, logoUrl }: Props) {
   const uri = failed ? null : mediaUrl(logoUrl);
 
   return (
-    <LinearGradient
-      colors={Gradients.gold.colors}
-      locations={Gradients.gold.locations}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{ width: size, height: size, borderRadius: size / 2, padding: 1 }}>
-      <View style={[styles.inner, { borderRadius: size / 2 }]}>
-        {uri ? (
-          <Image
-            source={{ uri }}
-            style={{ width: size - 2, height: size - 2, borderRadius: size / 2 }}
-            contentFit="cover"
-            transition={150}
-            onError={() => setFailed(true)}
-            accessibilityLabel={`${name} logo`}
-          />
-        ) : (
-          <Text style={[styles.text, { fontSize: size * 0.34 }]}>{initials(name)}</Text>
-        )}
-      </View>
-    </LinearGradient>
+    <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2 }]}>
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={{ width: size, height: size }}
+          contentFit="cover"
+          transition={150}
+          onError={() => setFailed(true)}
+          accessibilityLabel={`${name} logo`}
+        />
+      ) : (
+        <Text style={[styles.text, { fontSize: size * 0.34 }]}>{initials(name)}</Text>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  inner: { flex: 1, backgroundColor: C.surface, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  text: { color: C.accentLight, fontWeight: '500', letterSpacing: 1 },
+  circle: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  text: { color: C.textDim, fontWeight: '600' },
 });

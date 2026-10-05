@@ -6,12 +6,12 @@ import { errorMessage } from '@/api/client';
 import { BrandLockup } from '@/components/brand';
 import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import { FormScroll } from '@/components/form-scroll';
-import { GoldButton, OutlineButton, TextButton } from '@/components/ui/button';
-import { Divider, GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton, SecondaryButton, TextButton } from '@/components/ui/button';
+import { Divider, Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
+import { Brand } from '@/constants/brand';
 import { C, Type } from '@/constants/theme';
 import { useAuth, useMe } from '@/context/auth-context';
 
@@ -50,16 +50,16 @@ export default function PendingScreen() {
       <FormScroll contentStyle={styles.content}>
         <BrandLockup tagline={false} />
         <VerifyEmailBanner />
-        <GlassCard style={styles.card}>
+        <Card style={styles.card}>
           <View style={styles.ring}>
             <Icon name="hourglass_top" size={30} />
           </View>
           <View style={{ gap: 8, alignItems: 'center' }}>
-            <GoldText style={Type.eyebrow}>Membership under review</GoldText>
+            <Text style={Type.eyebrow}>Membership under review</Text>
             <Text style={[Type.title, { textAlign: 'center' }]}>Awaiting approval</Text>
             <Text style={[Type.bodyDim, { textAlign: 'center' }]}>
               Thank you{me.profile.name ? `, ${me.profile.name}` : ''}. Our team reviews every company before it joins
-              the Zoe Milano network.
+              the {Brand.name} network.
             </Text>
           </View>
           {me.business && (
@@ -77,15 +77,15 @@ export default function PendingScreen() {
           )}
           {message && <Text style={styles.message}>{message}</Text>}
           <ErrorBanner message={error} />
-          <GoldButton title="Check status" onPress={check} loading={checking} icon="refresh" />
+          <PrimaryButton title="Check status" onPress={check} loading={checking} icon="refresh" />
           {canEditCompany && (
-            <OutlineButton
+            <SecondaryButton
               title="Complete company profile"
               icon="edit"
               onPress={() => router.push('/account/edit-business')}
             />
           )}
-        </GlassCard>
+        </Card>
         <View style={styles.links}>
           <TextButton title="Account & security" onPress={() => router.push('/account/security')} />
           <TextButton title="Sign out" onPress={confirmLogout} />
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     backgroundColor: C.accentDim,
     alignItems: 'center',
     justifyContent: 'center',
@@ -112,6 +112,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
   rowLabel: { ...Type.label, color: C.textMuted },
   rowValue: { color: C.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
-  message: { color: C.accentLight, fontSize: 13, textAlign: 'center' },
+  message: { color: C.accent, fontSize: 13, textAlign: 'center' },
   links: { flexDirection: 'row', justifyContent: 'center', gap: 28 },
 });

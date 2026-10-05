@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon, type IconName } from '@/components/ui/icon';
-import { C } from '@/constants/theme';
+import { C, Radius } from '@/constants/theme';
 
 type Props = {
   icon: IconName;
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function ListRow({ icon, title, subtitle, onPress, tone = 'default' }: Props) {
-  const color = tone === 'danger' ? C.danger : C.accentLight;
+  const color = tone === 'danger' ? C.danger : C.accent;
   return (
     <Pressable
       onPress={onPress}
@@ -20,7 +20,7 @@ export function ListRow({ icon, title, subtitle, onPress, tone = 'default' }: Pr
       accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
       android_ripple={{ color: C.accentDim }}
       style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.accentDim }]}>
-      <View style={[styles.iconWrap, tone === 'danger' && { borderColor: 'rgba(224,82,82,0.35)' }]}>
+      <View style={[styles.iconWrap, tone === 'danger' && { borderColor: C.danger }]}>
         <Icon name={icon} size={20} color={color} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
@@ -33,13 +33,13 @@ export function ListRow({ icon, title, subtitle, onPress, tone = 'default' }: Pr
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 4, borderRadius: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 4, borderRadius: Radius.md },
   iconWrap: {
     width: 38,
     height: 38,
     borderRadius: 19,
     borderWidth: 1,
-    borderColor: 'rgba(194,142,26,0.3)',
+    borderColor: C.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

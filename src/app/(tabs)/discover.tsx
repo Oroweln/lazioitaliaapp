@@ -10,9 +10,10 @@ import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { Chip } from '@/components/ui/segmented';
-import { EmptyState, ErrorState, GoldRefreshControl, Loading } from '@/components/ui/states';
+import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
+import { Brand } from '@/constants/brand';
 import { INDUSTRIES } from '@/constants/industries';
-import { C, MaxContentWidth, Radius } from '@/constants/theme';
+import { C, MaxContentWidth, Radius, Scheme } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
 
 const PAGE = 20;
@@ -114,9 +115,9 @@ export default function DiscoverScreen() {
           onChangeText={setQuery}
           placeholder="Search companies, services, cities"
           placeholderTextColor={C.textHint}
-          cursorColor={C.accentLight}
+          cursorColor={C.accent}
           selectionColor={C.accentDim}
-          keyboardAppearance="dark"
+          keyboardAppearance={Scheme}
           returnKeyType="search"
           style={styles.searchInput}
         />
@@ -132,7 +133,7 @@ export default function DiscoverScreen() {
 
   return (
     <Screen>
-      <ScreenHeader eyebrow="Zoe Milano Network" title="Discover" />
+      <ScreenHeader eyebrow={`${Brand.name} Network`} title="Discover" />
       {filters}
       {loading ? (
         <Loading />
@@ -154,8 +155,8 @@ export default function DiscoverScreen() {
           onEndReachedThreshold={0.4}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          refreshControl={<GoldRefreshControl refreshing={refreshing} onRefresh={refresh} />}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.accentLight} style={{ margin: 16 }} /> : null}
+          refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.accent} style={{ margin: 16 }} /> : null}
           ListEmptyComponent={
             <EmptyState
               icon="travel_explore"
@@ -182,9 +183,9 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     height: 48,
-    borderRadius: Radius.pill,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     backgroundColor: C.inputFill,
   },
   searchInput: { flex: 1, color: C.text, fontSize: 15, paddingVertical: 0 },

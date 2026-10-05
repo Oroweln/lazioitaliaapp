@@ -6,9 +6,8 @@ import { errorMessage } from '@/api/client';
 import { Auth } from '@/api/endpoints';
 import { BrandLockup } from '@/components/brand';
 import { FormScroll } from '@/components/form-scroll';
-import { GoldButton, TextButton } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/card';
-import { GoldText } from '@/components/ui/gold-text';
+import { PrimaryButton, TextButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
@@ -50,21 +49,21 @@ export default function ForgotPasswordScreen() {
         <BrandLockup tagline={false} />
         {sent ? (
           // Deliberately the same message whether or not the address has an account.
-          <GlassCard style={styles.card}>
+          <Card style={styles.card}>
             <View style={styles.iconRing}>
               <Icon name="mail" size={26} />
             </View>
-            <GoldText style={Type.eyebrow}>Check your inbox</GoldText>
+            <Text style={Type.eyebrow}>Check your inbox</Text>
             <Text style={[Type.bodyDim, { textAlign: 'center' }]}>
               If {email.trim()} has an account, we&apos;ve sent a link to choose a new password. It is valid for one
               hour.
             </Text>
-            <GoldButton title="Back to sign in" onPress={() => router.back()} />
-          </GlassCard>
+            <PrimaryButton title="Back to sign in" onPress={() => router.back()} />
+          </Card>
         ) : (
-          <GlassCard style={styles.card}>
+          <Card style={styles.card}>
             <View style={{ gap: 6 }}>
-              <GoldText style={Type.eyebrow}>Forgot your password</GoldText>
+              <Text style={Type.eyebrow}>Forgot your password</Text>
               <Text style={Type.title}>Reset it by email</Text>
               <Text style={Type.bodyDim}>
                 Enter the address you signed up with and we&apos;ll send you a link to set a new password.
@@ -84,9 +83,9 @@ export default function ForgotPasswordScreen() {
               autoFocus
             />
             <ErrorBanner message={error} />
-            <GoldButton title="Send reset link" onPress={submit} loading={busy} icon="lock_reset" />
+            <PrimaryButton title="Send reset link" onPress={submit} loading={busy} icon="lock_reset" />
             <TextButton title="← Back to sign in" onPress={() => router.back()} />
-          </GlassCard>
+          </Card>
         )}
       </FormScroll>
     </Screen>
@@ -102,7 +101,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: C.borderGold,
+    borderColor: C.border,
     backgroundColor: C.accentDim,
     alignItems: 'center',
     justifyContent: 'center',
