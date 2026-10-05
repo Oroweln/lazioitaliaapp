@@ -11,7 +11,7 @@ import { ScreenHeader } from '@/components/ui/header';
 import { Screen } from '@/components/ui/screen';
 import { SecondaryButton } from '@/components/ui/button';
 import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
-import { C, MaxContentWidth } from '@/constants/theme';
+import { C, Font, Metal, MaxContentWidth } from '@/constants/theme';
 import { useRealtime } from '@/context/realtime-context';
 import { relativeTime } from '@/utils/format';
 
@@ -172,8 +172,8 @@ export default function MessagesScreen() {
         accessibilityLabel={`${name}${item.other_business_name ? `, ${item.other_business_name}` : ''}${
           unread ? `, ${item.unread_count} unread` : ''
         }`}
-        android_ripple={{ color: C.accentDim }}
-        style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.surfacePressed }]}
+        android_ripple={{ color: 'rgba(3,95,105,0.08)' }}
+        style={({ pressed }) => [styles.row, unread && styles.rowUnread, pressed && { backgroundColor: C.surfacePressed }]}
         onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id, name } })}>
         <Avatar name={item.other_business_name ?? name} size={52} logoUrl={item.other_business_logo_url} />
         <View style={styles.body}>
@@ -222,7 +222,7 @@ export default function MessagesScreen() {
           refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator color={C.accent} style={{ margin: 16 }} />
+              <ActivityIndicator color={C.text} style={{ margin: 16 }} />
             ) : hasMore && items.length > 0 ? (
               // onEndReached can fail to fire on some Android layouts; this keeps paging
               // reachable by tap, and makes "is there more?" visible instead of silent.
@@ -245,24 +245,27 @@ export default function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingBottom: 32, flexGrow: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  list: { paddingTop: 6, paddingBottom: 32, flexGrow: 1, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
   footer: { padding: 16, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, paddingVertical: 14 },
+  // Unread threads get the website's red left rule on a lighter surface.
+  rowUnread: { backgroundColor: C.surface, borderLeftWidth: 3, borderLeftColor: C.accent, paddingLeft: 17 },
   body: { flex: 1, gap: 2 },
   topLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  name: { flex: 1, fontSize: 16, color: C.text, fontWeight: '400' },
-  nameUnread: { fontWeight: '600' },
-  company: { fontSize: 12, color: C.textDim },
-  time: { fontSize: 12, color: C.textMuted },
-  preview: { flex: 1, fontSize: 14, color: C.textMuted },
+  name: { flex: 1, fontFamily: Font.semibold, fontSize: 16, color: C.text },
+  nameUnread: { fontFamily: Font.bold },
+  company: { fontFamily: Font.semibold, fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', color: C.textMuted },
+  time: { fontFamily: Font.medium, fontSize: 12, color: C.textMuted },
+  preview: { flex: 1, fontFamily: Font.regular, fontSize: 14, color: C.textMuted },
   badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
     paddingHorizontal: 6,
     backgroundColor: C.accent,
+    experimental_backgroundImage: Metal.red,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: { fontSize: 11, fontWeight: '700', color: C.onAccent },
+  badgeText: { fontFamily: Font.bold, fontSize: 11, color: C.onAccent },
 });

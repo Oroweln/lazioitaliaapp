@@ -1,11 +1,11 @@
-# B2B Network App — design-neutral template
+# LazioItalia.app — mobile app
 
-Template for apps derived from **b2bzoeapp** (the Zoe Milano B2B network app). Companies discover each other,
-send connection requests, and — once connected — their people chat in real time.
+The mobile app of **LazioItalia.app**, derived from **b2bzoeapp** (the Zoe Milano B2B network app). Companies
+discover each other, send connection requests, and — once connected — their people chat in real time.
 
-All functionality is identical to b2bzoeapp; the design has been stripped to a neutral grayscale placeholder
-(no brand colors, gradients, logos or brand names) so a new app can start from here and be repainted with a
-completely different design. See **Repainting** below.
+All functionality is identical to b2bzoeapp. The design follows the LazioItalia.app website (the `lazio` repo):
+deep-teal surfaces, travertine backgrounds, metal-red buttons, brushed-steel details, Tinos Bold headlines over
+Inter, and the site's logo and hero media. See **Repainting** below for where each part of the design lives.
 
 This app is the frontend of **b2bserver**, the Rust/Axum backend two directories up (`../../`).
 

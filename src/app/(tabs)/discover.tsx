@@ -13,7 +13,7 @@ import { Chip } from '@/components/ui/segmented';
 import { EmptyState, ErrorState, AppRefreshControl, Loading } from '@/components/ui/states';
 import { Brand } from '@/constants/brand';
 import { INDUSTRIES } from '@/constants/industries';
-import { C, MaxContentWidth, Radius, Scheme } from '@/constants/theme';
+import { C, Font, MaxContentWidth, Radius, Scheme } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
 
 const PAGE = 20;
@@ -109,14 +109,14 @@ export default function DiscoverScreen() {
   const filters = (
     <View style={styles.filters}>
       <View style={styles.search}>
-        <Icon name="search" size={20} color={C.textMuted} />
+        <Icon name="search" size={20} color={C.text} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder="Search companies, services, cities"
           placeholderTextColor={C.textHint}
-          cursorColor={C.accent}
-          selectionColor={C.accentDim}
+          cursorColor={C.text}
+          selectionColor="rgba(3,95,105,0.25)"
           keyboardAppearance={Scheme}
           returnKeyType="search"
           style={styles.searchInput}
@@ -156,7 +156,7 @@ export default function DiscoverScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={refresh} />}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.accent} style={{ margin: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={C.text} style={{ margin: 16 }} /> : null}
           ListEmptyComponent={
             <EmptyState
               icon="travel_explore"
@@ -175,20 +175,22 @@ export default function DiscoverScreen() {
 }
 
 const styles = StyleSheet.create({
-  filters: { gap: 12, paddingBottom: 12 },
+  filters: { gap: 12, paddingTop: 16, paddingBottom: 12 },
+  // The website's search pill.
   search: {
     marginHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingHorizontal: 16,
-    height: 48,
-    borderRadius: Radius.md,
+    paddingHorizontal: 18,
+    height: 50,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: C.border,
     backgroundColor: C.inputFill,
+    boxShadow: '0px 10px 24px -18px rgba(3,95,105,0.5)',
   },
-  searchInput: { flex: 1, color: C.text, fontSize: 15, paddingVertical: 0 },
+  searchInput: { flex: 1, color: C.text, fontFamily: Font.regular, fontSize: 15, paddingVertical: 0 },
   chips: { paddingHorizontal: 20, gap: 8 },
   list: {
     paddingHorizontal: 20,

@@ -20,7 +20,7 @@ import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/states';
-import { C, Radius, Scheme } from '@/constants/theme';
+import { C, Font, Metal, Radius, Scheme } from '@/constants/theme';
 import { useMe } from '@/context/auth-context';
 import { useRealtime, useRealtimeStatus } from '@/context/realtime-context';
 import { clockTime } from '@/utils/format';
@@ -277,7 +277,7 @@ export default function ChatScreen() {
             onEndReached={loadOlder}
             onEndReachedThreshold={0.3}
             keyboardShouldPersistTaps="handled"
-            ListFooterComponent={loadingOlder ? <ActivityIndicator color={C.accent} style={{ margin: 12 }} /> : null}
+            ListFooterComponent={loadingOlder ? <ActivityIndicator color={C.text} style={{ margin: 12 }} /> : null}
           />
         )}
         <Composer onSend={send} bottomInset={insets.bottom} />
@@ -305,7 +305,7 @@ const MessageRow = memo(function MessageRow({
       <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowTheirs]}>
         {mine ? (
           <View style={[styles.bubble, styles.bubbleMine]}>
-            <Text style={[styles.text, { color: C.onAccent }]}>{message.content}</Text>
+            <Text style={[styles.text, { color: C.onInk }]}>{message.content}</Text>
             <Text style={[styles.time, styles.timeMine]}>{clockTime(message.created_at)}</Text>
           </View>
         ) : (
@@ -347,8 +347,8 @@ function Composer({ onSend, bottomInset }: { onSend: (content: string) => Promis
         onChangeText={(t) => setDraft(t.slice(0, 4000))}
         placeholder="Write a message…"
         placeholderTextColor={C.textHint}
-        cursorColor={C.accent}
-        selectionColor={C.accentDim}
+        cursorColor={C.text}
+        selectionColor="rgba(3,95,105,0.25)"
         keyboardAppearance={Scheme}
         multiline
         accessibilityLabel="Message"
@@ -368,14 +368,27 @@ function Composer({ onSend, bottomInset }: { onSend: (content: string) => Promis
 }
 
 const styles = StyleSheet.create({
-  offline: { textAlign: 'center', fontSize: 12, color: C.textMuted, paddingBottom: 6 },
+  offline: {
+    textAlign: 'center',
+    fontFamily: Font.bold,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: C.onInkMuted,
+    backgroundColor: C.ink2,
+    paddingVertical: 5,
+  },
   list: { paddingHorizontal: 14, paddingVertical: 12, flexGrow: 1 },
   dayWrap: { alignItems: 'center', marginVertical: 12 },
   day: {
-    fontSize: 11,
-    color: C.textMuted,
+    fontFamily: Font.bold,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: C.textDim,
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: C.divider,
+    borderColor: C.border,
     borderRadius: Radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -384,17 +397,18 @@ const styles = StyleSheet.create({
   bubbleRow: { marginVertical: 3, flexDirection: 'row' },
   rowMine: { justifyContent: 'flex-end' },
   rowTheirs: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '80%', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, borderRadius: Radius.lg, gap: 2 },
-  bubbleMine: { backgroundColor: C.accent, borderBottomRightRadius: Radius.sm },
+  bubble: { maxWidth: '80%', paddingHorizontal: 14, paddingTop: 9, paddingBottom: 7, borderRadius: Radius.lg, gap: 2 },
+  // Mine: deep teal with ivory text; theirs: the light surface card.
+  bubbleMine: { backgroundColor: C.ink, borderBottomRightRadius: 6, boxShadow: '0px 8px 18px -14px rgba(1,62,69,0.9)' },
   bubbleTheirs: {
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    borderBottomLeftRadius: Radius.sm,
+    borderBottomLeftRadius: 6,
   },
-  text: { fontSize: 15, lineHeight: 21, color: C.text },
-  time: { fontSize: 10, color: C.textMuted, alignSelf: 'flex-end' },
-  timeMine: { color: C.onAccent, opacity: 0.7 },
+  text: { fontFamily: Font.regular, fontSize: 15, lineHeight: 21, color: C.text },
+  time: { fontFamily: Font.medium, fontSize: 10, color: C.textMuted, alignSelf: 'flex-end' },
+  timeMine: { color: C.onInkMuted },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -402,8 +416,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: C.divider,
-    backgroundColor: C.bg,
+    borderTopColor: C.border,
+    backgroundColor: C.surface,
   },
   input: {
     flex: 1,
@@ -414,16 +428,20 @@ const styles = StyleSheet.create({
     borderColor: C.border,
     backgroundColor: C.inputFill,
     color: C.text,
+    fontFamily: Font.regular,
     fontSize: 15,
     paddingHorizontal: 18,
     paddingTop: 12,
     paddingBottom: 12,
   },
+  // Metal-red round send button.
   send: {
     width: 46,
     height: 46,
-    borderRadius: Radius.lg,
+    borderRadius: 23,
     backgroundColor: C.accent,
+    experimental_backgroundImage: Metal.red,
+    boxShadow: '0px 8px 18px -10px rgba(213,34,4,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
   },

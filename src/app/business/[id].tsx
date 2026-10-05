@@ -10,11 +10,12 @@ import { Avatar } from '@/components/ui/avatar';
 import { Divider, Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
+import { metal, MetalEdge } from '@/components/ui/metal';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner, ErrorState, Loading } from '@/components/ui/states';
 import { Tag } from '@/components/ui/tag';
-import { C, MaxContentWidth, Radius, Type } from '@/constants/theme';
+import { C, Font, MaxContentWidth, Radius, Type } from '@/constants/theme';
 import { useAsync } from '@/hooks/use-async';
 import { invalidateConnections, useConnections } from '@/hooks/use-connections';
 import { useOpenChat } from '@/hooks/use-open-chat';
@@ -52,10 +53,17 @@ export default function BusinessScreen() {
         <ErrorState message={error ?? 'Company not found'} onRetry={retry} />
       ) : (
         <>
-          <ScrollView contentContainerStyle={styles.content}>
-            <View style={styles.hero}>
-              <Avatar name={business.name} size={92} logoUrl={business.logo_url} />
-              <Text style={[Type.title, { textAlign: 'center' }]}>{business.name}</Text>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            {/* Teal company hero, like the website's company profile. */}
+            <View style={[styles.hero, metal('hero')]}>
+              <Avatar name={business.name} size={96} logoUrl={business.logo_url} />
+              <Text style={styles.heroTitle}>{business.name}</Text>
+              {business.location ? (
+                <View style={styles.place}>
+                  <Icon name="location_on" size={15} color={C.coral} />
+                  <Text style={styles.placeText}>{business.location}</Text>
+                </View>
+              ) : null}
               {isWebUrl(business.website) ? (
                 <Pressable
                   onPress={() => openWebsite(business.website)}
@@ -75,30 +83,35 @@ export default function BusinessScreen() {
                 )}
               </View>
             </View>
+            <MetalEdge />
 
-            {business.description ? (
-              <Section title="About">
-                <Text style={styles.body}>{business.description}</Text>
+            <View style={styles.content}>
+              {business.description ? (
+                <Section title="About">
+                  <Text style={styles.body}>{business.description}</Text>
+                </Section>
+              ) : null}
+
+              {business.looking_for ? (
+                // "We are looking for": deep-teal card with a red left edge, the statement in Tinos.
+                <Card tone="ink" style={styles.lookingFor}>
+                  <Text style={[Type.eyebrow, { color: C.coral }]}>Looking for</Text>
+                  <Text style={styles.lookingForText}>{business.looking_for}</Text>
+                </Card>
+              ) : null}
+
+              <Section title="Key facts" ink>
+                <DetailRow icon="apartment" label="Industry" value={business.industry} />
+                <DetailRow icon="location_on" label="Location" value={business.location} />
+                <DetailRow icon="group" label="Company size" value={business.size ? SIZE_LABELS[business.size] : null} />
+                <DetailRow
+                  icon="language"
+                  label="Website"
+                  value={displayWebsite(business.website)}
+                  onPress={isWebUrl(business.website) ? () => openWebsite(business.website) : undefined}
+                />
               </Section>
-            ) : null}
-
-            {business.looking_for ? (
-              <Section title="Looking for">
-                <Text style={styles.body}>{business.looking_for}</Text>
-              </Section>
-            ) : null}
-
-            <Section title="Details">
-              <DetailRow icon="apartment" label="Industry" value={business.industry} />
-              <DetailRow icon="location_on" label="Location" value={business.location} />
-              <DetailRow icon="group" label="Company size" value={business.size ? SIZE_LABELS[business.size] : null} />
-              <DetailRow
-                icon="language"
-                label="Website"
-                value={displayWebsite(business.website)}
-                onPress={isWebUrl(business.website) ? () => openWebsite(business.website) : undefined}
-              />
-            </Section>
+            </View>
           </ScrollView>
 
           <View style={styles.footer}>
@@ -153,10 +166,10 @@ export default function BusinessScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, ink }: { title: string; children: React.ReactNode; ink?: boolean }) {
   return (
-    <Card style={{ gap: 12 }}>
-      <Text style={Type.eyebrow}>{title}</Text>
+    <Card style={{ gap: 12, paddingTop: ink ? 24 : 18 }} tone={ink ? 'ink' : 'light'} edge={ink}>
+      <Text style={[Type.eyebrow, ink && { color: C.coral }]}>{title}</Text>
       {children}
     </Card>
   );
@@ -176,7 +189,7 @@ function DetailRow({
   if (!value) return null;
   const row = (
     <View style={styles.detailRow}>
-      <Icon name={icon} size={18} />
+      <Icon name={icon} size={18} color="#a3c8d3" />
       <Text style={styles.detailLabel}>{label}</Text>
       <Text style={[styles.detailValue, onPress && styles.detailLink]} numberOfLines={2}>
         {value}
@@ -186,7 +199,7 @@ function DetailRow({
   );
   return (
     <>
-      <Divider />
+      <Divider style={{ backgroundColor: C.lineOnInk }} />
       {onPress ? (
         <Pressable onPress={onPress} accessibilityRole="link" accessibilityLabel={`Open ${label} ${value}`}>
           {row}
@@ -242,6 +255,7 @@ function ConnectComposer({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <SafeAreaView edges={['bottom']} style={styles.sheetWrap}>
           <Pressable style={styles.sheet} onPress={() => undefined}>
+            <MetalEdge style={styles.sheetEdge} />
             <Text style={Type.eyebrow}>Connection request</Text>
             <Text style={Type.heading}>Introduce yourself to {businessName}</Text>
             <Input
@@ -263,27 +277,34 @@ function ConnectComposer({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 20, gap: 16, paddingBottom: 32, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
-  hero: { alignItems: 'center', gap: 12, paddingVertical: 12 },
-  website: { color: C.accent, fontSize: 14, textDecorationLine: 'underline' },
-  tags: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
-  body: { color: C.textDim, fontSize: 15, lineHeight: 24 },
+  scroll: { paddingBottom: 32 },
+  content: { padding: 20, gap: 16, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  hero: { alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingTop: 26, paddingBottom: 24 },
+  heroTitle: { ...Type.display, color: C.onInk, textAlign: 'center' },
+  place: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  placeText: { fontFamily: Font.semibold, fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase', color: C.onInkMuted },
+  website: { color: C.coral, fontFamily: Font.semibold, fontSize: 14, textDecorationLine: 'underline' },
+  tags: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 4 },
+  body: { color: C.textDim, fontFamily: Font.regular, fontSize: 15, lineHeight: 24 },
+  lookingFor: { gap: 10, borderLeftWidth: 4, borderLeftColor: C.accent },
+  lookingForText: { fontFamily: Font.serif, fontSize: 21, lineHeight: 27, color: C.onInk },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  detailLabel: { color: C.textMuted, fontSize: 13, width: 104 },
-  detailValue: { flex: 1, color: C.text, fontSize: 14, textAlign: 'right' },
-  detailLink: { color: C.accent, textDecorationLine: 'underline' },
+  detailLabel: { color: C.onInkMuted, fontFamily: Font.medium, fontSize: 13, width: 104 },
+  detailValue: { flex: 1, color: C.onInk, fontFamily: Font.semibold, fontSize: 14, textAlign: 'right' },
+  detailLink: { color: C.coral, textDecorationLine: 'underline' },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: C.divider,
-    backgroundColor: C.bg,
+    borderTopColor: C.border,
+    backgroundColor: C.surface,
   },
   backdrop: { flex: 1, backgroundColor: C.scrim, justifyContent: 'flex-end' },
-  sheetWrap: { backgroundColor: C.bg, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg },
+  sheetWrap: { backgroundColor: C.surface, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg, overflow: 'hidden' },
   sheet: {
     padding: 22,
+    paddingTop: 26,
     gap: 14,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
@@ -291,5 +312,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
     borderColor: C.border,
   },
-  counter: { alignSelf: 'flex-end', fontSize: 11, color: C.textMuted, marginTop: -8 },
+  sheetEdge: { position: 'absolute', top: 0, left: 0, right: 0 },
+  counter: { alignSelf: 'flex-end', fontFamily: Font.medium, fontSize: 11, color: C.textMuted, marginTop: -8 },
 });

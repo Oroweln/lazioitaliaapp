@@ -1,4 +1,10 @@
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 import { MaterialSymbols_300Light } from '@expo-google-fonts/material-symbols/300Light';
+import { Tinos_700Bold } from '@expo-google-fonts/tinos/700Bold';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,7 +18,7 @@ import { PrimaryButton } from '@/components/ui/button';
 import { ICON_FONT, markIconFontUnavailable } from '@/components/ui/icon';
 import { EmptyState } from '@/components/ui/states';
 import { Brand } from '@/constants/brand';
-import { C, Scheme } from '@/constants/theme';
+import { C, Font, Scheme } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { RealtimeProvider } from '@/context/realtime-context';
 
@@ -34,8 +40,17 @@ const navTheme: Theme = {
 
 function RootNavigator() {
   const { status, bootError, retryBoot } = useAuth();
-  // Icons render from this font; holding the splash until it's ready avoids blank icons.
-  const [fontsLoaded, fontError] = useFonts({ [ICON_FONT]: MaterialSymbols_300Light });
+  // Icons and text render from these fonts; holding the splash until they're ready avoids blank
+  // icons and a jump from the system font to Inter/Tinos.
+  const [fontsLoaded, fontError] = useFonts({
+    [ICON_FONT]: MaterialSymbols_300Light,
+    [Font.regular]: Inter_400Regular,
+    [Font.medium]: Inter_500Medium,
+    [Font.semibold]: Inter_600SemiBold,
+    [Font.bold]: Inter_700Bold,
+    [Font.extrabold]: Inter_800ExtraBold,
+    [Font.serif]: Tinos_700Bold,
+  });
   const fontsReady = fontsLoaded || !!fontError;
   if (fontError) markIconFontUnavailable();
 
@@ -48,8 +63,9 @@ function RootNavigator() {
   if (bootError) {
     return (
       <View style={styles.boot}>
-        <BrandLockup tagline={false} />
+        <BrandLockup tagline={false} tone="ink" />
         <EmptyState
+          tone="ink"
           icon="cloud_off"
           title={`Can't reach ${Brand.name}`}
           message={bootError}
@@ -63,7 +79,7 @@ function RootNavigator() {
   if (status === 'loading') {
     return (
       <View style={styles.boot}>
-        <ActivityIndicator color={C.accent} size="large" />
+        <ActivityIndicator color={C.onInk} size="large" />
       </View>
     );
   }
@@ -95,7 +111,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider style={{ backgroundColor: C.bg }}>
       <ThemeProvider value={navTheme}>
-        <StatusBar style={Scheme === 'dark' ? 'light' : 'dark'} />
+        {/* Every screen's top edge is deep teal (header bars, heroes), so status bar icons are light. */}
+        <StatusBar style="light" />
         <AuthProvider>
           <RealtimeProvider>
             <RootNavigator />
@@ -107,5 +124,6 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  boot: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
+  // Matches the native splash (deep teal with the logo box).
+  boot: { flex: 1, backgroundColor: C.nav, alignItems: 'center', justifyContent: 'center', padding: 24 },
 });

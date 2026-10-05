@@ -6,13 +6,13 @@ import { ListRow } from '@/components/list-row';
 import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import { Avatar } from '@/components/ui/avatar';
 import { SecondaryButton } from '@/components/ui/button';
-import { Divider, Card } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner, AppRefreshControl } from '@/components/ui/states';
 import { Tag } from '@/components/ui/tag';
 import { Brand } from '@/constants/brand';
-import { C, MaxContentWidth, Type } from '@/constants/theme';
+import { C, Font, MaxContentWidth, Type } from '@/constants/theme';
 import { useAuth, useMe } from '@/context/auth-context';
 import { useAsync } from '@/hooks/use-async';
 import { useRefetchOnFocus } from '@/hooks/use-refetch-on-focus';
@@ -51,10 +51,11 @@ export default function ProfileScreen() {
         refreshControl={<AppRefreshControl refreshing={team.refreshing} onRefresh={team.reload} />}>
         <VerifyEmailBanner />
 
-        <Card style={styles.hero}>
-          <Avatar name={business?.name ?? me.profile.name ?? me.email} size={84} logoUrl={business?.logo_url} />
+        {/* Deep-teal "ticket" card with the steel edge, like the website's member card. */}
+        <Card style={styles.hero} tone="ink" edge>
+          <Avatar name={business?.name ?? me.profile.name ?? me.email} size={88} logoUrl={business?.logo_url} />
           <View style={{ alignItems: 'center', gap: 6 }}>
-            <Text style={[Type.title, { textAlign: 'center' }]}>{business?.name ?? 'No company'}</Text>
+            <Text style={[Type.title, styles.heroTitle]}>{business?.name ?? 'No company'}</Text>
             {isWebUrl(business?.website) ? (
               <Pressable
                 onPress={() => openWebsite(business?.website)}
@@ -69,10 +70,10 @@ export default function ProfileScreen() {
             {business?.industry && <Tag label={business.industry} />}
             {me.business_role && <Tag label={ROLE_LABEL[me.business_role]} tone="muted" />}
           </View>
-          <Divider />
+          <View style={styles.perforation} />
           <View style={{ alignItems: 'center', gap: 2 }}>
             <Text style={styles.person}>{me.profile.name ?? 'Add your name'}</Text>
-            <Text style={styles.email}>{me.email}</Text>
+            <Text style={[styles.email, { color: C.onInkMuted }]}>{me.email}</Text>
           </View>
         </Card>
 
@@ -157,17 +158,28 @@ function Detail({ label, value }: { label: string; value: string | null | undefi
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 20, paddingTop: 4, gap: 16, paddingBottom: 40, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
-  hero: { alignItems: 'center', gap: 14, padding: 24 },
-  website: { color: C.accent, fontSize: 14, textDecorationLine: 'underline' },
-  tags: { flexDirection: 'row', gap: 8 },
-  person: { fontSize: 16, color: C.text },
-  email: { fontSize: 12, color: C.textMuted },
+  content: { padding: 20, paddingTop: 18, gap: 16, paddingBottom: 40, width: '100%', maxWidth: MaxContentWidth, alignSelf: 'center' },
+  hero: { alignItems: 'center', gap: 14, padding: 24, paddingTop: 30 },
+  heroTitle: { textAlign: 'center', color: C.onInk },
+  website: { color: C.coral, fontFamily: Font.semibold, fontSize: 14, textDecorationLine: 'underline' },
+  tags: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
+  // Dashed perforation, as on the website's tickets.
+  perforation: { alignSelf: 'stretch', borderTopWidth: 1, borderStyle: 'dashed', borderColor: C.lineOnInk },
+  person: { fontFamily: Font.semibold, fontSize: 16, color: C.onInk },
+  email: { fontFamily: Font.regular, fontSize: 12, color: C.textMuted },
   section: { gap: 14 },
-  body: { color: C.textDim, fontSize: 14, lineHeight: 22 },
-  muted: { color: C.textMuted, fontSize: 14 },
-  detail: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
-  detailValue: { color: C.text, fontSize: 14, flexShrink: 1, textAlign: 'right' },
+  body: { color: C.textDim, fontFamily: Font.regular, fontSize: 14, lineHeight: 22 },
+  muted: { color: C.textMuted, fontFamily: Font.regular, fontSize: 14 },
+  detail: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: C.border,
+  },
+  detailValue: { color: C.text, fontFamily: Font.semibold, fontSize: 14, flexShrink: 1, textAlign: 'right' },
   member: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  memberName: { fontSize: 14, color: C.text },
+  memberName: { fontFamily: Font.semibold, fontSize: 14, color: C.text },
 });

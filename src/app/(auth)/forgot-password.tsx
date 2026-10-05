@@ -10,6 +10,7 @@ import { PrimaryButton, TextButton } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScreenHeader } from '@/components/ui/header';
 import { Icon } from '@/components/ui/icon';
+import { metal } from '@/components/ui/metal';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { ErrorBanner } from '@/components/ui/states';
@@ -49,9 +50,9 @@ export default function ForgotPasswordScreen() {
         <BrandLockup tagline={false} />
         {sent ? (
           // Deliberately the same message whether or not the address has an account.
-          <Card style={styles.card}>
-            <View style={styles.iconRing}>
-              <Icon name="mail" size={26} />
+          <Card style={styles.card} edge>
+            <View style={[styles.iconRing, metal('steel')]}>
+              <Icon name="mail" size={28} color={C.nav} />
             </View>
             <Text style={Type.eyebrow}>Check your inbox</Text>
             <Text style={[Type.bodyDim, { textAlign: 'center' }]}>
@@ -61,7 +62,7 @@ export default function ForgotPasswordScreen() {
             <PrimaryButton title="Back to sign in" onPress={() => router.back()} />
           </Card>
         ) : (
-          <Card style={styles.card}>
+          <Card style={styles.card} edge>
             <View style={{ gap: 6 }}>
               <Text style={Type.eyebrow}>Forgot your password</Text>
               <Text style={Type.title}>Reset it by email</Text>
@@ -94,15 +95,12 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   content: { justifyContent: 'center', gap: 28 },
-  card: { gap: 18, padding: 24, alignItems: 'stretch' },
+  card: { gap: 18, padding: 24, paddingTop: 28, alignItems: 'stretch' },
   iconRing: {
     alignSelf: 'center',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: C.border,
-    backgroundColor: C.accentDim,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },

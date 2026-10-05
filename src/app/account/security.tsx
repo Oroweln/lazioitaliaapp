@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/screen';
 import { ErrorBanner, ErrorState, Loading } from '@/components/ui/states';
 import { Tag } from '@/components/ui/tag';
 import { Brand } from '@/constants/brand';
-import { C, Radius, Type } from '@/constants/theme';
+import { C, Font, Radius, Type } from '@/constants/theme';
 import { useAuth, useMe } from '@/context/auth-context';
 import { useAsync } from '@/hooks/use-async';
 
@@ -206,12 +206,12 @@ const styles = StyleSheet.create({
   secretBox: {
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: C.border,
+    borderColor: C.steel,
     borderRadius: Radius.md,
     padding: 14,
     gap: 6,
     backgroundColor: C.inputFill,
   },
-  secret: { color: C.accent, fontSize: 16, fontFamily: 'monospace', textAlign: 'center', letterSpacing: 1 },
-  code: { fontSize: 22, letterSpacing: 8, textAlign: 'center' },
+  secret: { color: C.text, fontSize: 16, fontFamily: 'monospace', textAlign: 'center', letterSpacing: 1 },
+  code: { fontFamily: Font.extrabold, fontSize: 22, letterSpacing: 8, textAlign: 'center' },
 });

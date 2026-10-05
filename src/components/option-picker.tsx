@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
-import { C, Radius, Type } from '@/constants/theme';
+import { MetalEdge } from '@/components/ui/metal';
+import { C, Font, Radius, Type } from '@/constants/theme';
 
 type Props = {
   label: string;
@@ -38,6 +39,7 @@ export function OptionPicker({ label, value, options, placeholder = 'Select', on
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable style={styles.sheet} onPress={() => undefined}>
+            <MetalEdge style={styles.edge} />
             <Text style={[Type.heading, { marginBottom: 8 }]}>{label}</Text>
             <ScrollView style={{ maxHeight: 420 }}>
               {allowClear && (
@@ -52,10 +54,10 @@ export function OptionPicker({ label, value, options, placeholder = 'Select', on
                     key={o.value}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
-                    style={({ pressed }) => [styles.option, (pressed || active) && { backgroundColor: C.accentDim }]}
+                    style={({ pressed }) => [styles.option, (pressed || active) && { backgroundColor: 'rgba(3,95,105,0.08)' }]}
                     onPress={() => choose(o.value)}>
                     <Text style={[styles.optionText, active && styles.optionActive]}>{o.label}</Text>
-                    {active && <Icon name="check" size={18} />}
+                    {active && <Icon name="check" size={18} color={C.accent} />}
                   </Pressable>
                 );
               })}
@@ -79,15 +81,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  value: { fontSize: 15, color: C.text },
+  value: { fontFamily: Font.regular, fontSize: 15, color: C.text },
   backdrop: { flex: 1, backgroundColor: C.scrim, justifyContent: 'center', padding: 24 },
   sheet: {
-    backgroundColor: C.bg,
+    backgroundColor: C.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: C.border,
     padding: 20,
+    paddingTop: 24,
+    overflow: 'hidden',
   },
+  edge: { position: 'absolute', top: 0, left: 0, right: 0 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,6 +101,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: Radius.sm,
   },
-  optionText: { fontSize: 15, color: C.text },
-  optionActive: { fontWeight: '600' },
+  optionText: { fontFamily: Font.regular, fontSize: 15, color: C.text },
+  optionActive: { fontFamily: Font.semibold },
 });

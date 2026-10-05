@@ -7,7 +7,7 @@ import { SecondaryButton } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { ErrorBanner } from '@/components/ui/states';
-import { C, Type } from '@/constants/theme';
+import { C, Font, Type } from '@/constants/theme';
 import { useAuth, useMe } from '@/context/auth-context';
 
 /// Shown until the account's email is confirmed. Nothing on the server depends on
@@ -46,7 +46,7 @@ export function VerifyEmailBanner() {
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
-        <Icon name="mail" size={20} />
+        <Icon name="mail" size={20} color={C.warning} />
         <Text style={Type.heading}>Confirm your email</Text>
       </View>
       <Text style={Type.bodyDim}>
@@ -79,8 +79,9 @@ export function VerifyEmailBanner() {
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 12, borderColor: C.warning },
+  // Notice panel: amber left rule on a light card (the website's demo-notice style).
+  card: { gap: 12, borderLeftWidth: 4, borderLeftColor: C.warning },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  notice: { color: C.text, fontSize: 13, lineHeight: 19 },
+  notice: { color: C.text, fontFamily: Font.medium, fontSize: 13, lineHeight: 19 },
   actions: { flexDirection: 'row', gap: 10 },
 });
