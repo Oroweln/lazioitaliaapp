@@ -44,7 +44,9 @@
             "./node_modules/@expo-google-fonts/material-symbols/300Light/MaterialSymbols_300Light.ttf"
           ]
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
