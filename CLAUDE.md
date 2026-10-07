@@ -31,11 +31,13 @@ Tag tone `gold` → `accent`, `Zoe Milano` → `Brand.name`), so port changes th
 2. `src/constants/brand.ts` — `Brand.name` / `Brand.tagline` / `Brand.descriptor`.
 3. `src/components/ui/*`, `src/components/brand.tsx` (`BrandLockup`), `src/components/auth-hero.tsx`, then
    per-screen `StyleSheet`s in `src/app/`.
-4. `assets/images/` — icon, adaptive icon, splash and favicon (the site's logo box on deep teal `C.nav`),
-   `brand/` (mark, red and ivory wordmarks) and `hero-cities.jpg` (the site's hero still, teal grade baked in).
+4. `assets/images/` — icon, adaptive icon, splash and favicon (the site's metal mark,
+   `lazioitalia-mark-metal.svg`: white map + red L on the box teal `#14929e`; the splash shows the whole box on
+   `C.nav`), `brand/` (`mark-metal`, `wordmark-metal` for teal surfaces as in the site header, red `wordmark` for
+   light ones) and `hero-cities.jpg` (the site's hero still, teal grade baked in).
 5. `app.json` — `name`, `slug`, `scheme`, bundle id/package `app.lazioitalia`, `userInterfaceStyle` (must match
-   `Scheme`), the root `backgroundColor` (`C.bg`) and the splash/adaptive-icon `backgroundColor`s (`C.nav`, the
-   same as the boot screen in the root layout).
+   `Scheme`), the root `backgroundColor` (`C.bg`), the splash `backgroundColor` (`C.nav`, the same as the boot
+   screen in the root layout) and the adaptive-icon `backgroundColor` (`#14929e`, the mark's box).
 
 ## Commands
 
